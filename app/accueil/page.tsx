@@ -40,17 +40,35 @@ export default async function AccueilPage() {
 
       <div className="mt-10 rounded-2xl bg-card p-6 shadow-sm">
         <p className="text-anthracite/70">
-          Connexion réussie. Les séances, équipes et matchs arrivent dans les
+          Connexion réussie. Les séances et les matchs arrivent dans les
           prochaines étapes.
         </p>
-        {session.roles.includes("admin") && (
-          <Link
-            href="/admin/membres"
-            className="mt-4 inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
-          >
-            Gérer les membres
-          </Link>
-        )}
+        <div className="mt-4 flex flex-wrap gap-3">
+          {session.roles.includes("admin") && (
+            <>
+              <Link
+                href="/admin/membres"
+                className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
+              >
+                Gérer les membres
+              </Link>
+              <Link
+                href="/admin/equipes"
+                className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
+              >
+                Gérer les équipes
+              </Link>
+            </>
+          )}
+          {(session.roles.includes("entraineur") || session.roles.includes("coach")) && (
+            <Link
+              href="/equipes"
+              className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
+            >
+              Mes équipes
+            </Link>
+          )}
+        </div>
       </div>
     </main>
   );

@@ -17,3 +17,12 @@ export async function requireRole(role: string): Promise<SessionPayload> {
   }
   return session;
 }
+
+export async function requireAnyRole(roles: string[]): Promise<SessionPayload> {
+  const session = await requireSession();
+  const allowed = session.roles.includes("admin") || roles.some((r) => session.roles.includes(r));
+  if (!allowed) {
+    redirect("/accueil");
+  }
+  return session;
+}
