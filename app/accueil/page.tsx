@@ -40,8 +40,8 @@ export default async function AccueilPage() {
 
       <div className="mt-10 rounded-2xl bg-card p-6 shadow-sm">
         <p className="text-anthracite/70">
-          Connexion réussie. Les séances et les matchs arrivent dans les
-          prochaines étapes.
+          Connexion réussie. Le constructeur de séance et les matchs
+          arrivent dans les prochaines étapes.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           {session.roles.includes("admin") && (
@@ -61,12 +61,20 @@ export default async function AccueilPage() {
             </>
           )}
           {(session.roles.includes("entraineur") || session.roles.includes("coach")) && (
-            <Link
-              href="/equipes"
-              className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
-            >
-              Mes équipes
-            </Link>
+            <>
+              <Link
+                href="/equipes"
+                className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
+              >
+                Mes équipes
+              </Link>
+              <Link
+                href="/bibliotheque"
+                className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
+              >
+                Bibliothèque d&apos;exercices
+              </Link>
+            </>
           )}
         </div>
       </div>

@@ -33,8 +33,52 @@ const demoMembers = [
   { prenom: "Inès", nom: "Joueuse3-Démo", roles: ["joueur"], codeLength: 4 as const },
 ];
 
+const demoExercises = [
+  {
+    titre: "Échauffement articulaire",
+    partie: "echauffement",
+    dureeDefautMinutes: 8,
+    consignes: "Rotation chevilles, genoux, hanches, épaules. Sans ballon.",
+    tags: ["demo", "sans-ballon"],
+  },
+  {
+    titre: "Passes à deux mains",
+    partie: "fondamentaux",
+    dureeDefautMinutes: 10,
+    consignes: "Binômes face à face, passes poitrine puis à terre. Augmenter la distance progressivement.",
+    tags: ["demo", "passe"],
+  },
+  {
+    titre: "1 contre 1 fermeture",
+    partie: "theme",
+    dureeDefautMinutes: 15,
+    consignes: "Le défenseur part en retard d'un pas, doit refermer avant le panier.",
+    tags: ["demo", "defense", "1c1"],
+  },
+  {
+    titre: "Match 3 contre 3",
+    partie: "jeu",
+    dureeDefautMinutes: 12,
+    consignes: "Demi-terrain, un seul panier, change de possession sur interception.",
+    tags: ["demo", "match"],
+  },
+  {
+    titre: "Étirements",
+    partie: "retour_calme",
+    dureeDefautMinutes: 5,
+    consignes: "Étirements statiques, respiration calme.",
+    tags: ["demo"],
+  },
+];
+
 async function main() {
   console.log("Nettoyage des anciennes données de démo…");
+  const { error: deleteExercisesError } = await supabase
+    .from("exercises")
+    .delete()
+    .contains("tags", ["demo"]);
+  if (deleteExercisesError) throw deleteExercisesError;
+
   const { error: deleteTeamsError } = await supabase
     .from("teams")
     .delete()
@@ -102,7 +146,21 @@ async function main() {
     }))
   );
   console.log(`\nÉquipe de démo : ${DEMO_TEAM_NOM} (mardi 18h-19h30, vendredi 18h30-20h)`);
-  console.log("Connexion : cherchez le nom sur /connexion, puis entrez le code ci-dessus.");
+
+  console.log("Création des exercices de démo…");
+  const { error: exercisesError } = await supabase.from("exercises").insert(
+    demoExercises.map((ex) => ({
+      titre: ex.titre,
+      partie: ex.partie,
+      duree_defaut_minutes: ex.dureeDefautMinutes,
+      consignes: ex.consignes,
+      tags: ex.tags,
+    }))
+  );
+  if (exercisesError) throw exercisesError;
+  console.log(`${demoExercises.length} exercices créés dans la bibliothèque.`);
+
+  console.log("\nConnexion : cherchez le nom sur /connexion, puis entrez le code ci-dessus.");
 }
 
 main().then(
