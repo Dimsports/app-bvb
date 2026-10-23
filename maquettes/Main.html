@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Accueil coach</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0F6E60}a:hover{color:#0A5248}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #F2F4F4; font-family: Inter, system-ui, sans-serif; color: #1E2226; overflow: hidden">
+
+<header style="background: #23272B; padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 12px">
+<img src="../public/logo-bvb.jpeg" alt="Logo BVB" style="width: 46px; height: 46px; object-fit: contain; background: #FFFFFF; border-radius: 12px; padding: 3px; box-sizing: border-box">
+<div style="display: flex; flex-direction: column; flex-grow: 1">
+<span style="font-size: 13px; color: #B9C2C6">Vendredi 23 octobre</span>
+<span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 26px; color: #FFFFFF; letter-spacing: 0.3px">Bonjour Dimitri</span>
+</div>
+<button aria-label="Notifications" style="width: 44px; height: 44px; border-radius: 12px; border: 1px solid #3A4045; background: #2C3135; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+</button>
+</div>
+
+<div style="background: #5CC6B1; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center">
+<span style="font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #12312C">Séance du jour</span>
+<span style="font-size: 12px; font-weight: 600; background: #23272B; color: #FFFFFF; border-radius: 999px; padding: 4px 10px">U15</span>
+</div>
+<div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 28px; line-height: 1.05; color: #12312C">Défense sur porteur de balle</div>
+<div style="font-size: 14px; color: #12312C">18h30 – 20h00 · Salle des sports · 5 exercices</div>
+<a href="Terrain.dc.html" style="margin-top: 4px; height: 46px; border-radius: 12px; background: #23272B; color: #FFFFFF; font-weight: 600; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5CC6B1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+Lancer en mode terrain</a>
+</div>
+</header>
+
+<main style="flex-grow: 1; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; min-height: 0">
+
+<section style="background: #FFFFFF; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 2px rgba(20,30,35,0.06)">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">Séances de la semaine</h2>
+<span style="font-size: 14px; font-weight: 600; color: #0F6E60">9 / 13 prêtes</span>
+</div>
+<div style="height: 8px; border-radius: 999px; background: #E3E8E8; overflow: hidden"><div style="width: 69%; height: 8px; background: #2FA892; border-radius: 999px"></div></div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 999px; background: #E6F5F1; color: #0F5A4F">U13 · 3/3</span>
+<span style="font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 999px; background: #E6F5F1; color: #0F5A4F">U15 · 3/3</span>
+<span style="font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 999px; background: #FFF1DE; color: #7A4A06">U17 · 2/4</span>
+<span style="font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 999px; background: #FFF1DE; color: #7A4A06">U18 · 1/3</span>
+</div>
+<a href="Seance.dc.html" style="font-size: 14px; font-weight: 600; text-decoration: none">Préparer les 4 séances restantes →</a>
+</section>
+
+<section style="background: #FFFFFF; border-radius: 16px; padding: 16px; display: flex; gap: 14px; align-items: center; box-shadow: 0 1px 2px rgba(20,30,35,0.06)">
+<div style="width: 56px; height: 64px; border-radius: 12px; background: #23272B; color: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0">
+<span style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #5CC6B1">Sam.</span>
+<span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 26px; line-height: 1">24</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1; min-width: 0">
+<span style="font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #5B656B">Prochain match · 14h00</span>
+<span style="font-size: 16px; font-weight: 700">U15 vs [Adversaire]</span>
+<span style="font-size: 13px; color: #4A545A">10 / 12 convoqués ont confirmé</span>
+</div>
+<a href="Match.dc.html" aria-label="Voir le match" style="width: 44px; height: 44px; border-radius: 12px; background: #F2F4F4; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23272B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"></polyline></svg>
+</a>
+</section>
+
+<section style="background: #FFFFFF; border-radius: 16px; padding: 14px 16px; display: flex; gap: 12px; align-items: center; box-shadow: 0 1px 2px rgba(20,30,35,0.06)">
+<div style="width: 40px; height: 40px; border-radius: 10px; background: #FFF1DE; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A35F00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+</div>
+<div style="display: flex; flex-direction: column; flex-grow: 1">
+<span style="font-size: 15px; font-weight: 600">2 missions bénévoles à pourvoir</span>
+<span style="font-size: 13px; color: #4A545A">Table de marque · Buvette — samedi</span>
+</div>
+</section>
+</main>
+
+<nav aria-label="Navigation principale" style="background: #FFFFFF; border-top: 1px solid #E1E6E6; padding: 8px 8px 22px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px">
+<a href="Main.dc.html" aria-current="page" style="min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #0F6E60; font-size: 11px; font-weight: 700">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21H3z"></path><path d="M9 21v-6h6v6"></path></svg>Accueil</a>
+<a href="Seance.dc.html" style="min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #5B656B; font-size: 11px; font-weight: 600">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4V3h6v1"></path><line x1="9" y1="10" x2="15" y2="10"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>Séances</a>
+<a href="#" style="min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #5B656B; font-size: 11px; font-weight: 600">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Équipes</a>
+<a href="Match.dc.html" style="min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #5B656B; font-size: 11px; font-weight: 600">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a14 14 0 0 1 0 18"></path><path d="M12 3a14 14 0 0 0 0 18"></path></svg>Matchs</a>
+<a href="#" style="min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #5B656B; font-size: 11px; font-weight: 600">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>Plus</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

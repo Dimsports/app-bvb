@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Mode terrain</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#5CC6B1}a:hover{color:#8FDCCC}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #1A1D20; font-family: Inter, system-ui, sans-serif; color: #FFFFFF; padding: 16px 20px 26px; gap: 14px; overflow: hidden; position: relative">
+
+<div style="display: flex; align-items: center; gap: 10px">
+<a href="Main.dc.html" aria-label="Quitter le mode terrain" style="width: 44px; height: 44px; border-radius: 12px; background: #2C3135; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>
+</a>
+<div style="flex-grow: 1; display: flex; flex-direction: column">
+<span style="font-size: 12px; color: #B9C2C6">U15 · Défense sur porteur</span>
+<span style="font-size: 14px; font-weight: 600">Exercice {{pos}} sur 5</span>
+</div>
+<button style="height: 44px; border-radius: 12px; border: none; background: #2C3135; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; padding: 0 14px; display: flex; align-items: center; gap: 8px; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5CC6B1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 12 9 17 20 6"></polyline></svg>
+Appel 11/12</button>
+</div>
+
+<div style="display: flex; gap: 4px">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+<span style="flex: 1; height: 6px; border-radius: 999px; background: {{s.bg}}"></span>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: {{ex.color}}">{{ex.part}}</span>
+<h1 style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 36px; line-height: 1">{{ex.name}}</h1>
+</div>
+
+<div style="position: relative; height: 196px; border-radius: 16px; overflow: hidden; background: #2A3035; display: flex; align-items: center; justify-content: center">
+<sc-if value="{{ex.hasMedia}}" hint-placeholder-val="{{ true }}">
+<div style="position: absolute; inset: 0; background: linear-gradient(180deg, #33424A 0%, #1F282D 100%)"></div>
+<button aria-label="Lire la vidéo de l'exercice" style="position: relative; width: 64px; height: 64px; border-radius: 999px; border: none; background: rgba(255,255,255,0.92); display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="#1A1D20" aria-hidden="true"><polygon points="8 5 19 12 8 19 8 5"></polygon></svg>
+</button>
+<span style="position: absolute; left: 12px; bottom: 12px; font-size: 12px; font-weight: 600; background: rgba(0,0,0,0.6); border-radius: 999px; padding: 5px 10px">{{ex.media}}</span>
+<button style="position: absolute; right: 10px; top: 10px; height: 34px; border-radius: 999px; border: none; background: rgba(0,0,0,0.6); color: #FFFFFF; font-family: inherit; font-size: 12px; font-weight: 600; padding: 0 12px; cursor: pointer">Plein écran</button>
+</sc-if>
+<sc-if value="{{showChoice}}" hint-placeholder-val="{{ false }}">
+<div style="width: 100%; height: 100%; box-sizing: border-box; padding: 14px; display: flex; flex-direction: column; gap: 10px; justify-content: center">
+<span style="font-size: 14px; font-weight: 600; color: #D4DADC; text-align: center">Aucun média pour cet exercice</span>
+<button style="height: 52px; border-radius: 12px; border: 2px dashed #4A545A; background: transparent; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5CC6B1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="10" r="2"></circle><path d="m21 16-5-5-8 8"></path></svg>
+Photo ou vidéo du téléphone</button>
+<button onClick="{{openLink}}" style="height: 52px; border-radius: 12px; border: 2px dashed #4A545A; background: transparent; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5CC6B1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg>
+Coller un lien vidéo</button>
+</div>
+</sc-if>
+<sc-if value="{{showLink}}" hint-placeholder-val="{{ false }}">
+<div style="width: 100%; height: 100%; box-sizing: border-box; padding: 14px; display: flex; flex-direction: column; gap: 10px; justify-content: center">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #D4DADC">Lien de la vidéo
+<input type="url" placeholder="https://…" value="{{linkValue}}" onChange="{{typeLink}}" style="height: 46px; border-radius: 12px; border: 1px solid #4A545A; background: #1A1D20; color: #FFFFFF; font-family: inherit; font-size: 15px; padding: 0 12px">
+</label>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{platforms}}" as="p" hint-placeholder-count="5">
+<span style="font-size: 12px; font-weight: 600; border-radius: 999px; padding: 4px 9px; background: {{p.bg}}; color: {{p.fg}}">{{p.name}}</span>
+</sc-for>
+</div>
+<div style="display: flex; gap: 8px">
+<button onClick="{{closeLink}}" style="flex: 1; height: 42px; border-radius: 10px; border: 1px solid #4A545A; background: transparent; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Annuler</button>
+<button onClick="{{saveLink}}" style="flex: 1; height: 42px; border-radius: 10px; border: none; background: #5CC6B1; color: #12312C; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Ajouter</button>
+</div>
+</div>
+</sc-if>
+</div>
+
+<div style="display: flex; align-items: center; justify-content: space-between; background: {{timerBg}}; border-radius: 18px; padding: 10px 12px 10px 18px">
+<div style="display: flex; flex-direction: column">
+<span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 58px; line-height: 1; letter-spacing: 1px; font-variant-numeric: tabular-nums; color: {{timerFg}}">{{clock}}</span>
+<span style="font-size: 12px; font-weight: 600; color: {{timerFg}}">{{timerHint}}</span>
+</div>
+<div style="display: flex; gap: 8px">
+<button onClick="{{reset}}" aria-label="Remettre à zéro" style="width: 52px; height: 52px; border-radius: 999px; border: none; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><polyline points="3 4 3 9 8 9"></polyline></svg>
+</button>
+<button onClick="{{toggle}}" aria-label="{{playLabel}}" style="width: 64px; height: 64px; border-radius: 999px; border: none; background: #5CC6B1; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<sc-if value="{{running}}" hint-placeholder-val="{{ false }}">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="#12312C" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
+</sc-if>
+<sc-if value="{{paused}}" hint-placeholder-val="{{ true }}">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="#12312C" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4"></polygon></svg>
+</sc-if>
+</button>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 7px; flex-grow: 1">
+<span style="font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #9AA5AA">Consignes</span>
+<sc-for list="{{ex.tips}}" as="t" hint-placeholder-count="3">
+<div style="display: flex; gap: 10px; font-size: 17px; line-height: 1.3">
+<span style="color: #5CC6B1; font-weight: 700">•</span><span>{{t}}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; gap: 10px">
+<button onClick="{{prev}}" style="flex: 1; height: 56px; border-radius: 14px; border: 1px solid #3A4045; background: #24282C; color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer">Précédent</button>
+<button onClick="{{next}}" style="flex: 1.4; height: 56px; border-radius: 14px; border: none; background: #FFFFFF; color: #1A1D20; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer">{{nextLabel}}</button>
+</div>
+
+<sc-if value="{{ringing}}" hint-placeholder-val="{{ false }}">
+<div role="alertdialog" aria-label="Temps écoulé" style="position: absolute; inset: 0; background: rgba(15,18,20,0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 32px">
+<svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#5CC6B1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M5 3 2 6"></path><path d="m22 6-3-3"></path></svg>
+<span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 44px">Temps écoulé</span>
+<span style="font-size: 16px; color: #D4DADC; text-align: center">{{ex.name}}</span>
+<button onClick="{{stopRing}}" style="width: 100%; height: 64px; border-radius: 18px; border: none; background: #E8613C; color: #FFFFFF; font-family: inherit; font-size: 20px; font-weight: 700; cursor: pointer">Arrêter</button>
+<button onClick="{{stopAndNext}}" style="width: 100%; height: 56px; border-radius: 16px; border: 1px solid #4A545A; background: transparent; color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer">Arrêter et passer à la suite</button>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"demo":{"editor":"boolean","default":true,"section":"Minuteur"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.list = [
+      { part: 'Échauffement', name: 'Gammes dribble + mobilité', min: 15, color: '#F2A93B', media: 'Vidéo importée · 0:42', tips: ['Main faible sur chaque aller', 'Regard haut, pas sur le ballon', 'Mobilité chevilles au retour'] },
+      { part: 'Fondamentaux', name: 'Pas glissés et contest', min: 20, color: '#6FA8F5', media: 'Photo', tips: ['Appuis larges, fesses basses', 'Ne jamais croiser les pieds', 'Main haute sur le tir'] },
+      { part: 'Thème', name: '1c1 sur porteur, ligne de fond', min: 20, color: '#5CC6B1', media: 'YouTube · 1:15', tips: ['Orienter le porteur vers la ligne de fond', 'Un bras d’écart, pas plus', 'Rebond défensif obligatoire'] },
+      { part: 'Jeu', name: '3c3 demi-terrain', min: 25, color: '#B79CF2', media: '', tips: ['Aide côté ballon dès la pénétration', 'Parler : « Ballon ! Aide ! »', 'Attaque en 3 passes minimum'] },
+      { part: 'Retour au calme', name: 'Lancers + étirements', min: 10, color: '#9AA5AA', media: '', tips: ['10 lancers chacun, on compte', 'Étirements ischios et mollets', 'Bilan : un mot par joueur'] }
+    ];
+    this.state = { i: 2, running: false, ringing: false, left: this.durationOf(2), linkOpen: false, link: '', added: {} };
+  }
+  durationOf(i) {
+    const demo = this.props.demo ?? true;
+    return demo ? 10 : this.list[i].min * 60;
+  }
+  componentWillUnmount() { this.stopTick(); this.stopSound(); }
+  audio() {
+    try {
+      if (!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; this.ctx = new AC(); }
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+    } catch (e) { this.ctx = null; }
+    return this.ctx;
+  }
+  chime() {
+    const ctx = this.audio();
+    if (!ctx) return;
+    const t0 = ctx.currentTime;
+    const notes = [1318.5, 1568, 1975.5, 1568];
+    for (let r = 0; r < 2; r++) {
+      notes.forEach((f, k) => {
+        const t = t0 + r * 0.6 + k * 0.13;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.5, t + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t); o.stop(t + 0.14);
+      });
+    }
+  }
+  startSound() {
+    this.stopSound();
+    this.chime();
+    this.ring = setInterval(() => this.chime(), 1500);
+    try { if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 400]); } catch (e) {}
+  }
+  stopSound() { if (this.ring) { clearInterval(this.ring); this.ring = null; } }
+  stopTick() { if (this.tick) { clearInterval(this.tick); this.tick = null; } }
+  startTick() {
+    this.stopTick();
+    this.tick = setInterval(() => {
+      const left = this.state.left - 1;
+      if (left <= 0) {
+        this.stopTick();
+        this.setState({ left: 0, running: false, ringing: true });
+        this.startSound();
+      } else {
+        this.setState({ left });
+      }
+    }, 1000);
+  }
+  go(i) {
+    this.stopTick(); this.stopSound();
+    this.setState({ i, running: false, ringing: false, left: this.durationOf(i), linkOpen: false, link: '' });
+  }
+  platformOf(url) {
+    const u = (url || '').toLowerCase();
+    if (u.indexOf('youtu') >= 0) return 'YouTube';
+    if (u.indexOf('instagram') >= 0) return 'Instagram';
+    if (u.indexOf('tiktok') >= 0) return 'TikTok';
+    if (u.indexOf('facebook') >= 0 || u.indexOf('fb.watch') >= 0) return 'Facebook';
+    if (u.indexOf('x.com') >= 0 || u.indexOf('twitter') >= 0) return 'X';
+    if (u.indexOf('vimeo') >= 0) return 'Vimeo';
+    return '';
+  }
+  renderVals() {
+    const list = this.list;
+    const i = this.state.i;
+    const added = this.state.added[i];
+    const ex = added ? Object.assign({}, list[i], { media: added }) : list[i];
+    const detected = this.platformOf(this.state.link);
+    const platforms = ['YouTube', 'Instagram', 'TikTok', 'Facebook', 'X', 'Vimeo'].map((n) => ({
+      name: n,
+      bg: n === detected ? '#5CC6B1' : '#2F3439',
+      fg: n === detected ? '#12312C' : '#B9C2C6'
+    }));
+    const left = this.state.left;
+    const mm = String(Math.floor(left / 60)).padStart(2, '0');
+    const ss = String(left % 60).padStart(2, '0');
+    const last = left <= 10 && this.state.running;
+    const demo = this.props.demo ?? true;
+    return {
+      ex: Object.assign({}, ex, { hasMedia: !!ex.media }),
+      showChoice: !ex.media && !this.state.linkOpen,
+      showLink: !ex.media && this.state.linkOpen,
+      platforms,
+      linkValue: this.state.link,
+      typeLink: (e) => this.setState({ link: e.target.value }),
+      openLink: () => this.setState({ linkOpen: true, link: '' }),
+      closeLink: () => this.setState({ linkOpen: false, link: '' }),
+      saveLink: () => {
+        const name = this.platformOf(this.state.link) || 'Lien vidéo';
+        this.setState({ linkOpen: false, link: '', added: Object.assign({}, this.state.added, { [i]: name }) });
+      },
+      steps: list.map((x, k) => ({ bg: k < i ? '#5CC6B1' : (k === i ? '#FFFFFF' : '#3A4045') })),
+      pos: i + 1,
+      clock: mm + ':' + ss,
+      timerBg: last ? '#3B2A22' : '#24282C',
+      timerFg: last ? '#FFB38A' : '#FFFFFF',
+      timerHint: demo ? 'Démo : 10 secondes · sonnerie à la fin' : 'Sonnerie à la fin du temps',
+      running: this.state.running, paused: !this.state.running,
+      ringing: this.state.ringing,
+      playLabel: this.state.running ? 'Pause' : 'Démarrer le minuteur',
+      toggle: () => {
+        this.audio();
+        if (this.state.running) { this.stopTick(); this.setState({ running: false }); }
+        else { if (this.state.left <= 0) this.setState({ left: this.durationOf(i) }); this.setState({ running: true }); this.startTick(); }
+      },
+      reset: () => this.go(i),
+      stopRing: () => { this.stopSound(); this.setState({ ringing: false, left: this.durationOf(i) }); },
+      stopAndNext: () => this.go(Math.min(list.length - 1, i + 1)),
+      prev: () => this.go(Math.max(0, i - 1)),
+      next: () => this.go(Math.min(list.length - 1, i + 1)),
+      nextLabel: i === list.length - 1 ? 'Terminer la séance' : 'Exercice suivant'
+    };
+  }
+}
+</script>
+</body>
+</html>

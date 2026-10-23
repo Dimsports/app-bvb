@@ -1,26 +1,66 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-turquoise: #5cc6b1;
+  --color-turquoise-hover: #8fdccc;
+  --color-turquoise-contrast: #0f6e60;
+  --color-on-turquoise: #12312c;
+  --color-anthracite: #23272b;
+  --color-anthracite-light: #2c3135;
+  --color-border-dark: #3a4045;
+  --color-muted-dark: #b9c2c6;
+  --color-key-bg: #2f3439;
+  --color-dot-empty: #6b767c;
+  --color-ink: #1e2226;
+  --color-ink-muted: #4a545a;
+  --color-background: #f2f4f4;
+  --color-card: #ffffff;
+  --color-field-bg: #1a1d20;
+
+  --color-part-echauffement: #f2a93b;
+  --color-part-fondamentaux: #6fa8f5;
+  --color-part-theme: #5cc6b1;
+  --color-part-jeu: #b79cf2;
+  --color-part-retour-calme: #9aa5aa;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-turquoise: var(--color-turquoise);
+  --color-turquoise-hover: var(--color-turquoise-hover);
+  --color-turquoise-contrast: var(--color-turquoise-contrast);
+  --color-on-turquoise: var(--color-on-turquoise);
+  --color-anthracite: var(--color-anthracite);
+  --color-anthracite-light: var(--color-anthracite-light);
+  --color-border-dark: var(--color-border-dark);
+  --color-muted-dark: var(--color-muted-dark);
+  --color-key-bg: var(--color-key-bg);
+  --color-dot-empty: var(--color-dot-empty);
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-background: var(--color-background);
+  --color-card: var(--color-card);
+  --color-field-bg: var(--color-field-bg);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-part-echauffement: var(--color-part-echauffement);
+  --color-part-fondamentaux: var(--color-part-fondamentaux);
+  --color-part-theme: var(--color-part-theme);
+  --color-part-jeu: var(--color-part-jeu);
+  --color-part-retour-calme: var(--color-part-retour-calme);
+
+  --font-title: var(--font-barlow-condensed);
+  --font-sans: var(--font-inter);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-anthracite);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.font-title {
+  font-family: var(--font-title), var(--font-sans), system-ui, sans-serif;
+  font-weight: 700;
 }

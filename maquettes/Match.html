@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Match du week-end</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0F6E60}a:hover{color:#0A5248}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #F2F4F4; font-family: Inter, system-ui, sans-serif; color: #1E2226; overflow: hidden">
+
+<header style="background: #23272B; color: #FFFFFF; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; gap: 10px">
+<a href="Main.dc.html" aria-label="Retour" style="width: 44px; height: 44px; border-radius: 12px; background: #2C3135; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 6 9 12 15 18"></polyline></svg>
+</a>
+<span style="flex-grow: 1; font-size: 14px; color: #D4DADC">Samedi 24 octobre · 14h00 · Domicile</span>
+<span style="font-size: 11px; font-weight: 700; border: 1px solid #5CC6B1; color: #5CC6B1; border-radius: 999px; padding: 4px 8px">FFBB</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+<img src="../public/logo-bvb.jpeg" alt="Logo BVB" style="width: 60px; height: 60px; object-fit: contain; background: #FFFFFF; border-radius: 16px; padding: 4px; box-sizing: border-box">
+<span style="font-size: 14px; font-weight: 700">BVB U15</span>
+</div>
+<span style="text-align: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 34px; color: #5CC6B1">VS</span>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+<div style="width: 60px; height: 60px; border-radius: 16px; background: #3A4045; display: flex; align-items: center; justify-content: center">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#B9C2C6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"></path></svg>
+</div>
+<span style="font-size: 14px; font-weight: 700">[Adversaire]</span>
+</div>
+</div>
+</header>
+
+<div role="tablist" aria-label="Sections du match" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 14px 20px 0">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+<button role="tab" aria-selected="{{t.selected}}" onClick="{{t.pick}}" style="height: 44px; border-radius: 12px; border: none; background: {{t.bg}}; color: {{t.fg}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">{{t.label}}</button>
+</sc-for>
+</div>
+
+<main style="flex-grow: 1; padding: 14px 20px 26px; display: flex; flex-direction: column; gap: 10px; min-height: 0">
+
+<sc-if value="{{isConvoc}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; gap: 8px">
+<span style="flex: 1; background: #E6F5F1; color: #0F5A4F; border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 600; text-align: center">10 confirmés</span>
+<span style="flex: 1; background: #FFF1DE; color: #7A4A06; border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 600; text-align: center">1 en attente</span>
+<span style="flex: 1; background: #FBE6E4; color: #8A2A20; border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 600; text-align: center">1 absent</span>
+</div>
+<div style="background: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 2px rgba(20,30,35,0.06)">
+<sc-for list="{{players}}" as="p" hint-placeholder-count="7">
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid #EEF1F1">
+<span style="width: 34px; height: 34px; border-radius: 999px; background: #23272B; color: #FFFFFF; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center">{{p.num}}</span>
+<span style="flex-grow: 1; font-size: 15px; font-weight: 500">{{p.name}}</span>
+<span style="font-size: 12px; font-weight: 700; border-radius: 999px; padding: 5px 10px; background: {{p.bg}}; color: {{p.fg}}">{{p.status}}</span>
+</div>
+</sc-for>
+</div>
+<button style="height: 50px; border-radius: 14px; border: none; background: #23272B; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Relancer le joueur en attente</button>
+</sc-if>
+
+<sc-if value="{{isBene}}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{missions}}" as="m" hint-placeholder-count="4">
+<div style="background: #FFFFFF; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(20,30,35,0.06)">
+<div style="display: flex; flex-direction: column; flex-grow: 1; gap: 2px">
+<span style="font-size: 15px; font-weight: 600">{{m.name}}</span>
+<span style="font-size: 13px; color: #4A545A">{{m.who}}</span>
+</div>
+<span style="font-size: 12px; font-weight: 700; border-radius: 999px; padding: 5px 10px; background: {{m.bg}}; color: {{m.fg}}">{{m.status}}</span>
+</div>
+</sc-for>
+<button style="height: 50px; border-radius: 14px; border: none; background: #5CC6B1; color: #12312C; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer">Envoyer un appel aux bénévoles</button>
+</sc-if>
+
+<sc-if value="{{isScore}}" hint-placeholder-val="{{ false }}">
+<div style="background: #FFFFFF; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 1px 2px rgba(20,30,35,0.06)">
+<span style="font-size: 14px; color: #4A545A">Saisis le score final à la fin du match.</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">BVB U15
+<input type="number" inputmode="numeric" placeholder="0" style="height: 72px; border-radius: 14px; border: 2px solid #C9D2D2; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 40px; color: #1E2226">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">[Adversaire]
+<input type="number" inputmode="numeric" placeholder="0" style="height: 72px; border-radius: 14px; border: 2px solid #C9D2D2; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 40px; color: #1E2226">
+</label>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Note du coach (privée)
+<textarea rows="3" placeholder="Points forts, axes de travail…" style="border-radius: 12px; border: 1px solid #C9D2D2; padding: 12px; font-family: inherit; font-size: 15px; resize: none"></textarea>
+</label>
+<button style="height: 50px; border-radius: 14px; border: none; background: #23272B; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Valider le résultat</button>
+</div>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'convoc' };
+  }
+  renderVals() {
+    const tab = this.state.tab;
+    const tabs = [
+      { id: 'convoc', label: 'Convocations' },
+      { id: 'bene', label: 'Bénévoles' },
+      { id: 'score', label: 'Résultat' }
+    ].map((t) => ({
+      label: t.label,
+      selected: tab === t.id ? 'true' : 'false',
+      bg: tab === t.id ? '#23272B' : '#E3E8E8',
+      fg: tab === t.id ? '#FFFFFF' : '#3A4247',
+      pick: () => this.setState({ tab: t.id })
+    }));
+    const st = {
+      ok: { status: 'Confirmé', bg: '#E6F5F1', fg: '#0F5A4F' },
+      wait: { status: 'En attente', bg: '#FFF1DE', fg: '#7A4A06' },
+      no: { status: 'Absent', bg: '#FBE6E4', fg: '#8A2A20' }
+    };
+    const players = [
+      ['4', 'Lucas M.', 'ok'], ['5', 'Nathan B.', 'ok'], ['7', 'Enzo R.', 'wait'],
+      ['8', 'Hugo P.', 'ok'], ['9', 'Tom G.', 'no'], ['10', 'Léo D.', 'ok'], ['11', 'Mathis C.', 'ok']
+    ].map((p) => Object.assign({ num: p[0], name: p[1] }, st[p[2]]));
+    const missions = [
+      { name: 'Table de marque', who: 'Sophie L. · Marc T.', s: 'ok' },
+      { name: 'Chronomètre 24″', who: 'Personne inscrit', s: 'free' },
+      { name: 'Buvette', who: '1 / 2 personnes', s: 'free' },
+      { name: 'Transport retour', who: 'Pas nécessaire (domicile)', s: 'na' }
+    ].map((m) => ({
+      name: m.name, who: m.who,
+      status: m.s === 'ok' ? 'Complet' : (m.s === 'free' ? 'À pourvoir' : '—'),
+      bg: m.s === 'ok' ? '#E6F5F1' : (m.s === 'free' ? '#FFF1DE' : '#EEF1F1'),
+      fg: m.s === 'ok' ? '#0F5A4F' : (m.s === 'free' ? '#7A4A06' : '#4A545A')
+    }));
+    return {
+      tabs, players, missions,
+      isConvoc: tab === 'convoc', isBene: tab === 'bene', isScore: tab === 'score'
+    };
+  }
+}
+</script>
+</body>
+</html>
