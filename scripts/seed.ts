@@ -148,17 +148,58 @@ async function main() {
   console.log(`\nÉquipe de démo : ${DEMO_TEAM_NOM} (mardi 18h-19h30, vendredi 18h30-20h)`);
 
   console.log("Création des exercices de démo…");
-  const { error: exercisesError } = await supabase.from("exercises").insert(
-    demoExercises.map((ex) => ({
-      titre: ex.titre,
-      partie: ex.partie,
-      duree_defaut_minutes: ex.dureeDefautMinutes,
-      consignes: ex.consignes,
-      tags: ex.tags,
-    }))
-  );
+  const { data: insertedExercises, error: exercisesError } = await supabase
+    .from("exercises")
+    .insert(
+      demoExercises.map((ex) => ({
+        titre: ex.titre,
+        partie: ex.partie,
+        duree_defaut_minutes: ex.dureeDefautMinutes,
+        consignes: ex.consignes,
+        tags: ex.tags,
+      }))
+    )
+    .select("id, titre");
   if (exercisesError) throw exercisesError;
   console.log(`${demoExercises.length} exercices créés dans la bibliothèque.`);
+
+  const exerciceIdByTitre = (titre: string) => insertedExercises!.find((e) => e.titre === titre)!.id;
+
+  console.log("Création d'une séance de démo…");
+  const nextTuesday = new Date();
+  nextTuesday.setDate(nextTuesday.getDate() + ((2 - nextTuesday.getDay() + 7) % 7 || 7));
+  const seanceDate = nextTuesday.toISOString().slice(0, 10);
+
+  const { data: seance, error: seanceError } = await supabase
+    .from("seances")
+    .insert({
+      team_id: team.id,
+      date: seanceDate,
+      heure_debut: "18:00",
+      heure_fin: "19:30",
+      titre: "Défense sur porteur de balle",
+    })
+    .select("id")
+    .single();
+  if (seanceError) throw seanceError;
+
+  const blocsPlan = [
+    { titre: "Échauffement articulaire", duree: 8 },
+    { titre: "Passes à deux mains", duree: 10 },
+    { titre: "1 contre 1 fermeture", duree: 15 },
+    { titre: "Match 3 contre 3", duree: 12 },
+    { titre: "Étirements", duree: 5 },
+  ];
+  const { error: blocsError } = await supabase.from("seance_blocs").insert(
+    blocsPlan.map((b, i) => ({
+      seance_id: seance.id,
+      exercice_id: exerciceIdByTitre(b.titre),
+      ordre: i + 1,
+      duree_minutes: b.duree,
+    }))
+  );
+  if (blocsError) throw blocsError;
+  console.log(`Séance de démo créée pour le ${seanceDate} (${blocsPlan.length} blocs).`);
 
   console.log("\nConnexion : cherchez le nom sur /connexion, puis entrez le code ci-dessus.");
 }

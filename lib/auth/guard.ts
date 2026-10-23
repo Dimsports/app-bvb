@@ -1,6 +1,7 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { getSession, type SessionPayload } from "./session";
+import { isTeamStaff } from "@/lib/teams/queries";
 
 export async function requireSession(): Promise<SessionPayload> {
   const session = await getSession();
@@ -23,6 +24,30 @@ export async function requireAnyRole(roles: string[]): Promise<SessionPayload> {
   const allowed = session.roles.includes("admin") || roles.some((r) => session.roles.includes(r));
   if (!allowed) {
     redirect("/accueil");
+  }
+  return session;
+}
+
+/**
+ * Entraineur/coach : accès limité aux équipes où ils sont staff.
+ * Admin : accès à toutes les équipes.
+ */
+export async function requireTeamStaff(teamId: string): Promise<SessionPayload> {
+  const session = await requireAnyRole(["entraineur", "coach"]);
+  if (!session.roles.includes("admin") && !(await isTeamStaff(teamId, session.memberId))) {
+    redirect("/seances");
+  }
+  return session;
+}
+
+/**
+ * Création/édition de séance : réservé aux entraineurs (pas les coachs,
+ * qui ne font que consulter) rattachés à l'équipe, ou à l'admin.
+ */
+export async function requireTeamEditor(teamId: string): Promise<SessionPayload> {
+  const session = await requireRole("entraineur");
+  if (!session.roles.includes("admin") && !(await isTeamStaff(teamId, session.memberId))) {
+    redirect("/seances");
   }
   return session;
 }
