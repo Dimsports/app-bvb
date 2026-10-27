@@ -1,20 +1,62 @@
+import Link from "next/link";
 import { requireSession } from "@/lib/auth/guard";
 import { getMemberById } from "@/lib/members/get-member";
 import { ROLE_LABELS, isRole } from "@/lib/members/roles";
 import { logoutAction } from "@/lib/auth/actions";
-import Link from "next/link";
+import { getSeancesForMember } from "@/lib/seances/queries";
+import { teamLabel } from "@/lib/teams/constants";
+import { getServiceClient } from "@/lib/supabase/server";
+
+const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+});
+
+function isoDate(offsetDays = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().slice(0, 10);
+}
 
 export default async function AccueilPage() {
   const session = await requireSession();
   const member = await getMemberById(session.memberId);
+  const isAdmin = session.roles.includes("admin");
+  const isEntraineur = session.roles.includes("entraineur");
+  const isCoach = session.roles.includes("coach");
+
+  const seances =
+    isEntraineur || isCoach ? await getSeancesForMember(session.memberId, isAdmin) : [];
+
+  const today = isoDate();
+  const weekEnd = isoDate(6);
+  const todaySeance = seances.find((s) => s.date === today) ?? null;
+  const weekSeances = seances.filter((s) => s.date >= today && s.date <= weekEnd);
+  const weekReady = weekSeances.filter((s) => s.blocCount > 0).length;
+  const weekRemaining = weekSeances.length - weekReady;
+
+  let memberCount = 0;
+  let teamCount = 0;
+  if (isAdmin) {
+    const supabase = getServiceClient();
+    const [{ count: mCount }, { count: tCount }] = await Promise.all([
+      supabase.from("members").select("id", { count: "exact", head: true }),
+      supabase.from("teams").select("id", { count: "exact", head: true }),
+    ]);
+    memberCount = mCount ?? 0;
+    teamCount = tCount ?? 0;
+  }
+
+  const hasRoleContent = isAdmin || isEntraineur || isCoach;
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-anthracite/60">Bonjour</p>
+          <p className="text-sm capitalize text-anthracite/60">{DATE_FORMAT.format(new Date())}</p>
           <h1 className="font-title text-2xl text-anthracite">
-            {member ? `${member.prenom} ${member.nom}` : "…"}
+            Bonjour {member ? member.prenom : "…"}
           </h1>
         </div>
         <form action={logoutAction}>
@@ -38,50 +80,125 @@ export default async function AccueilPage() {
         ))}
       </div>
 
-      <div className="mt-10 rounded-2xl bg-card p-6 shadow-sm">
-        <p className="text-anthracite/70">
-          Connexion réussie. Les matchs arrivent dans une prochaine étape.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          {session.roles.includes("admin") && (
-            <>
+      <div className="mt-6 flex flex-col gap-4">
+        {(isEntraineur || isCoach) &&
+          (todaySeance ? (
+            <section className="rounded-2xl bg-turquoise p-5">
+              <div className="flex items-center justify-between">
+                <span className="rounded-full bg-anthracite px-3 py-1 text-xs font-semibold text-white">
+                  {todaySeance.team ? teamLabel(todaySeance.team) : ""}
+                </span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-on-turquoise">
+                  Séance du jour
+                </span>
+              </div>
+              <h2 className="mt-2 font-title text-2xl text-on-turquoise">
+                {todaySeance.titre || "Séance"}
+              </h2>
+              <p className="mt-1 text-sm text-on-turquoise">
+                {todaySeance.heure_debut ? todaySeance.heure_debut.slice(0, 5) : ""}
+                {todaySeance.heure_fin ? `–${todaySeance.heure_fin.slice(0, 5)}` : ""}
+                {todaySeance.blocCount > 0 ? ` · ${todaySeance.blocCount} exercices` : ""}
+              </p>
               <Link
-                href="/admin/membres"
-                className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
+                href={`/seances/${todaySeance.id}/terrain`}
+                className="mt-4 flex h-12 items-center justify-center gap-2 rounded-xl bg-anthracite font-medium text-white"
               >
-                Gérer les membres
+                ▶ Lancer en mode terrain
               </Link>
-              <Link
-                href="/admin/equipes"
-                className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
-              >
-                Gérer les équipes
-              </Link>
-            </>
-          )}
-          {(session.roles.includes("entraineur") || session.roles.includes("coach")) && (
-            <>
-              <Link
-                href="/equipes"
-                className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
-              >
-                Mes équipes
-              </Link>
+            </section>
+          ) : (
+            <section className="rounded-2xl bg-card p-5 shadow-sm">
+              <p className="text-sm text-anthracite/60">Pas de séance aujourd&apos;hui.</p>
+            </section>
+          ))}
+
+        {(isEntraineur || isAdmin) && weekSeances.length > 0 && (
+          <section className="rounded-2xl bg-card p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="font-medium text-anthracite">Séances de la semaine</h2>
+              <span className="text-sm font-semibold text-turquoise-contrast">
+                {weekReady} / {weekSeances.length} prêtes
+              </span>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-anthracite/10">
+              <div
+                className="h-full rounded-full bg-turquoise"
+                style={{ width: `${(weekReady / weekSeances.length) * 100}%` }}
+              />
+            </div>
+            {weekRemaining > 0 ? (
               <Link
                 href="/seances"
-                className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
+                className="mt-3 inline-block text-sm font-medium text-turquoise-contrast"
               >
-                Séances
+                Préparer les {weekRemaining} séance{weekRemaining > 1 ? "s" : ""} restante
+                {weekRemaining > 1 ? "s" : ""} →
               </Link>
-              <Link
-                href="/bibliotheque"
-                className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
-              >
-                Bibliothèque d&apos;exercices
-              </Link>
-            </>
-          )}
-        </div>
+            ) : (
+              <p className="mt-3 text-sm text-anthracite/60">
+                Toutes les séances de la semaine sont prêtes.
+              </p>
+            )}
+          </section>
+        )}
+
+        {isAdmin && (
+          <section className="rounded-2xl bg-card p-5 shadow-sm">
+            <h2 className="font-medium text-anthracite">Club</h2>
+            <p className="mt-1 text-sm text-anthracite/60">
+              {memberCount} membre{memberCount > 1 ? "s" : ""} · {teamCount} équipe
+              {teamCount > 1 ? "s" : ""}
+            </p>
+          </section>
+        )}
+
+        {!hasRoleContent && (
+          <section className="rounded-2xl bg-card p-5 shadow-sm">
+            <p className="text-sm text-anthracite/60">Connexion réussie.</p>
+          </section>
+        )}
+      </div>
+
+      <div className="mt-6 flex flex-wrap gap-3">
+        {isAdmin && (
+          <>
+            <Link
+              href="/admin/membres"
+              className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
+            >
+              Gérer les membres
+            </Link>
+            <Link
+              href="/admin/equipes"
+              className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
+            >
+              Gérer les équipes
+            </Link>
+          </>
+        )}
+        {(isEntraineur || isCoach) && (
+          <>
+            <Link
+              href="/equipes"
+              className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
+            >
+              Mes équipes
+            </Link>
+            <Link
+              href="/seances"
+              className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
+            >
+              Séances
+            </Link>
+            <Link
+              href="/bibliotheque"
+              className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
+            >
+              Bibliothèque d&apos;exercices
+            </Link>
+          </>
+        )}
       </div>
     </main>
   );
