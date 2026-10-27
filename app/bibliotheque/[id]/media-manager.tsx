@@ -2,9 +2,9 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { detectPlatform, getEmbedUrl, isEmbeddable, PLATFORM_LABELS, type Platform } from "@/lib/exercises/media";
 import { compressPhoto, validateVideo } from "@/lib/exercises/client-media";
 import { setExternalLink, uploadMedia, removeMedia } from "../actions";
+import { MediaDisplay } from "../media-display";
 
 export function MediaManager({
   exerciseId,
@@ -84,47 +84,12 @@ export function MediaManager({
     });
   }
 
-  const platform = mediaType === "lien" ? ((mediaPlatform as Platform | null) ?? detectPlatform(mediaUrl ?? "")) : null;
-
   return (
     <section className="rounded-2xl bg-card p-6 shadow-sm">
       <h2 className="font-title text-xl text-anthracite">Média</h2>
 
       <div className="mt-4">
-        {mediaType === "photo" && mediaUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={mediaUrl} alt="" className="w-full rounded-xl object-cover" />
-        )}
-        {mediaType === "video" && mediaUrl && (
-          <video src={mediaUrl} controls className="w-full rounded-xl" />
-        )}
-        {mediaType === "lien" && mediaUrl && platform && isEmbeddable(platform) && (
-          <div className="aspect-video w-full overflow-hidden rounded-xl bg-anthracite">
-            {getEmbedUrl(mediaUrl, platform) ? (
-              <iframe
-                src={getEmbedUrl(mediaUrl, platform)!}
-                className="h-full w-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <a href={mediaUrl} target="_blank" rel="noreferrer" className="flex h-full items-center justify-center text-white">
-                Ouvrir le lien
-              </a>
-            )}
-          </div>
-        )}
-        {mediaType === "lien" && mediaUrl && (!platform || !isEmbeddable(platform)) && (
-          <a
-            href={mediaUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="flex h-14 items-center justify-center rounded-xl border border-anthracite/20 font-medium text-anthracite"
-          >
-            Ouvrir dans {platform ? PLATFORM_LABELS[platform] : "l'app"}
-          </a>
-        )}
-        {!mediaType && <p className="text-sm text-anthracite/50">Aucun média pour l&apos;instant.</p>}
+        <MediaDisplay mediaType={mediaType} mediaUrl={mediaUrl} mediaPlatform={mediaPlatform} />
       </div>
 
       {canEdit && (

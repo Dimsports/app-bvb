@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireTeamStaff } from "@/lib/auth/guard";
 import { getSeanceDetail } from "@/lib/seances/queries";
+import Link from "next/link";
 import { teamLabel } from "@/lib/teams/constants";
 import { SeanceInfoForm } from "./seance-info-form";
 import { BlocEditor } from "./bloc-editor";
@@ -29,6 +30,13 @@ export default async function SeanceDetailPage({
       <h1 className={`font-title text-2xl text-anthracite ${seance.titre ? "" : "capitalize"}`}>
         {seance.titre || DATE_FORMAT.format(new Date(`${seance.date}T00:00:00`))}
       </h1>
+
+      <Link
+        href={`/seances/${seance.id}/terrain`}
+        className="mt-4 flex h-14 items-center justify-center gap-2 rounded-xl bg-anthracite font-medium text-white"
+      >
+        ▶ Lancer en mode terrain
+      </Link>
 
       <div className="mt-6 flex flex-col gap-6">
         {canEdit ? (

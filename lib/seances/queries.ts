@@ -13,11 +13,21 @@ export type SeanceSummary = {
   totalMinutes: number;
 };
 
+export type SeanceBlocExercice = {
+  id: string;
+  titre: string;
+  partie: string;
+  consignes: string | null;
+  media_type: string | null;
+  media_url: string | null;
+  media_platform: string | null;
+};
+
 export type SeanceBloc = {
   id: string;
   ordre: number;
   duree_minutes: number;
-  exercice: { id: string; titre: string; partie: string };
+  exercice: SeanceBlocExercice;
 };
 
 export type SeanceDetail = {
@@ -89,7 +99,7 @@ export async function getSeanceDetail(id: string): Promise<SeanceDetail | null> 
 
   const { data: blocRows } = await supabase
     .from("seance_blocs")
-    .select("id, ordre, duree_minutes, exercises(id, titre, partie)")
+    .select("id, ordre, duree_minutes, exercises(id, titre, partie, consignes, media_type, media_url, media_platform)")
     .eq("seance_id", id)
     .order("ordre", { ascending: true });
 
