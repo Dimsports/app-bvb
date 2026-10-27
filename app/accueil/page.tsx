@@ -4,6 +4,7 @@ import { getMemberById } from "@/lib/members/get-member";
 import { ROLE_LABELS, isRole } from "@/lib/members/roles";
 import { logoutAction } from "@/lib/auth/actions";
 import { getSeancesForMember } from "@/lib/seances/queries";
+import { getMatchesForMember } from "@/lib/matches/queries";
 import { teamLabel } from "@/lib/teams/constants";
 import { getServiceClient } from "@/lib/supabase/server";
 
@@ -11,6 +12,12 @@ const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", {
   weekday: "long",
   day: "numeric",
   month: "long",
+});
+
+const MATCH_DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
 });
 
 function isoDate(offsetDays = 0) {
@@ -28,8 +35,11 @@ export default async function AccueilPage() {
 
   const seances =
     isEntraineur || isCoach ? await getSeancesForMember(session.memberId, isAdmin) : [];
+  const matches =
+    isEntraineur || isCoach ? await getMatchesForMember(session.memberId, isAdmin) : [];
 
   const today = isoDate();
+  const nextMatch = matches.find((m) => m.date >= today) ?? null;
   const weekEnd = isoDate(6);
   const todaySeance = seances.find((s) => s.date === today) ?? null;
   const weekSeances = seances.filter((s) => s.date >= today && s.date <= weekEnd);
@@ -143,6 +153,32 @@ export default async function AccueilPage() {
           </section>
         )}
 
+        {(isEntraineur || isCoach) && nextMatch && (
+          <Link
+            href={`/matchs/${nextMatch.id}`}
+            className="flex items-center gap-3 rounded-2xl bg-card p-5 shadow-sm"
+          >
+            <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-anthracite text-white">
+              <span className="text-xs font-semibold uppercase text-turquoise">
+                {MATCH_DATE_FORMAT.format(new Date(`${nextMatch.date}T00:00:00`)).split(" ")[0]}
+              </span>
+              <span className="font-title text-xl leading-none">
+                {new Date(`${nextMatch.date}T00:00:00`).getDate()}
+              </span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-anthracite/50">
+                Prochain match{nextMatch.heure ? ` · ${nextMatch.heure.slice(0, 5)}` : ""}
+              </p>
+              <p className="truncate font-medium text-anthracite">
+                {nextMatch.team ? teamLabel(nextMatch.team) : ""} {nextMatch.domicile ? "vs" : "@"}{" "}
+                {nextMatch.adversaire}
+              </p>
+            </div>
+            <span className="shrink-0 text-anthracite/40">→</span>
+          </Link>
+        )}
+
         {isAdmin && (
           <section className="rounded-2xl bg-card p-5 shadow-sm">
             <h2 className="font-medium text-anthracite">Club</h2>
@@ -175,6 +211,12 @@ export default async function AccueilPage() {
             >
               Gérer les équipes
             </Link>
+            <Link
+              href="/admin/matchs"
+              className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
+            >
+              Gérer les matchs
+            </Link>
           </>
         )}
         {(isEntraineur || isCoach) && (
@@ -196,6 +238,12 @@ export default async function AccueilPage() {
               className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
             >
               Bibliothèque d&apos;exercices
+            </Link>
+            <Link
+              href="/matchs"
+              className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
+            >
+              Matchs
             </Link>
           </>
         )}
