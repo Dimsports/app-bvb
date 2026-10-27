@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { requireTeamStaff } from "@/lib/auth/guard";
-import { getMatchDetail } from "@/lib/matches/queries";
+import { getMatchDetail, getConvocationsForMatch } from "@/lib/matches/queries";
 import { teamLabel } from "@/lib/teams/constants";
+import { ConvocationsSection } from "./convocations-section";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", {
   weekday: "long",
@@ -18,7 +19,10 @@ export default async function MatchDetailPage({
   const match = await getMatchDetail(id);
   if (!match) notFound();
 
-  await requireTeamStaff(match.team_id);
+  const session = await requireTeamStaff(match.team_id);
+  const canEdit = session.roles.includes("admin") || session.roles.includes("entraineur");
+
+  const convocations = await getConvocationsForMatch(match.id, match.team_id);
 
   const hasScore = match.score_bvb !== null && match.score_adversaire !== null;
 
@@ -52,6 +56,10 @@ export default async function MatchDetailPage({
           </div>
         )}
       </section>
+
+      <div className="mt-6">
+        <ConvocationsSection matchId={match.id} canEdit={canEdit} initialRows={convocations} />
+      </div>
     </main>
   );
 }

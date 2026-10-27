@@ -4,9 +4,10 @@ import { getMemberById } from "@/lib/members/get-member";
 import { ROLE_LABELS, isRole } from "@/lib/members/roles";
 import { logoutAction } from "@/lib/auth/actions";
 import { getSeancesForMember } from "@/lib/seances/queries";
-import { getMatchesForMember } from "@/lib/matches/queries";
+import { getMatchesForMember, getConvocationsForPlayer } from "@/lib/matches/queries";
 import { teamLabel } from "@/lib/teams/constants";
 import { getServiceClient } from "@/lib/supabase/server";
+import { ConvocationCard } from "./convocation-card";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", {
   weekday: "long",
@@ -32,14 +33,19 @@ export default async function AccueilPage() {
   const isAdmin = session.roles.includes("admin");
   const isEntraineur = session.roles.includes("entraineur");
   const isCoach = session.roles.includes("coach");
+  const isJoueur = session.roles.includes("joueur");
 
   const seances =
     isEntraineur || isCoach ? await getSeancesForMember(session.memberId, isAdmin) : [];
   const matches =
     isEntraineur || isCoach ? await getMatchesForMember(session.memberId, isAdmin) : [];
+  const playerConvocations = isJoueur ? await getConvocationsForPlayer(session.memberId) : [];
 
   const today = isoDate();
   const nextMatch = matches.find((m) => m.date >= today) ?? null;
+  const pendingConvocations = playerConvocations.filter(
+    (c) => c.statut === "en_attente" && c.match.date >= today
+  );
   const weekEnd = isoDate(6);
   const todaySeance = seances.find((s) => s.date === today) ?? null;
   const weekSeances = seances.filter((s) => s.date >= today && s.date <= weekEnd);
@@ -58,7 +64,7 @@ export default async function AccueilPage() {
     teamCount = tCount ?? 0;
   }
 
-  const hasRoleContent = isAdmin || isEntraineur || isCoach;
+  const hasRoleContent = isAdmin || isEntraineur || isCoach || isJoueur;
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
@@ -188,6 +194,17 @@ export default async function AccueilPage() {
             </p>
           </section>
         )}
+
+        {isJoueur &&
+          (pendingConvocations.length > 0 ? (
+            pendingConvocations.map((c) => (
+              <ConvocationCard key={c.match.id} convocation={c} />
+            ))
+          ) : (
+            <section className="rounded-2xl bg-card p-5 shadow-sm">
+              <p className="text-sm text-anthracite/60">Aucune convocation en attente.</p>
+            </section>
+          ))}
 
         {!hasRoleContent && (
           <section className="rounded-2xl bg-card p-5 shadow-sm">
