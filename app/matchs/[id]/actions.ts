@@ -1,6 +1,6 @@
 "use server";
 
-import { requireTeamEditor, requireSession } from "@/lib/auth/guard";
+import { requireTeamEditor, requireTeamStaff, requireSession } from "@/lib/auth/guard";
 import { getServiceClient } from "@/lib/supabase/server";
 import { isConvocationStatut } from "@/lib/matches/constants";
 import { revalidatePath } from "next/cache";
@@ -119,5 +119,37 @@ export async function removeMission(matchId: string, missionId: string): Promise
   if (error) return { ok: false };
 
   revalidatePath(`/matchs/${matchId}`);
+  return { ok: true };
+}
+
+export async function updateMatchResult(
+  matchId: string,
+  scoreBvb: number | null,
+  scoreAdversaire: number | null,
+  noteCoach: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const teamId = await getMatchTeamId(matchId);
+  if (!teamId) return { ok: false, error: "Match introuvable." };
+  await requireTeamStaff(teamId);
+
+  for (const score of [scoreBvb, scoreAdversaire]) {
+    if (score !== null && (!Number.isInteger(score) || score < 0 || score > 999)) {
+      return { ok: false, error: "Score invalide." };
+    }
+  }
+
+  const supabase = getServiceClient();
+  const { error } = await supabase
+    .from("matches")
+    .update({
+      score_bvb: scoreBvb,
+      score_adversaire: scoreAdversaire,
+      note_coach: noteCoach.trim() || null,
+    })
+    .eq("id", matchId);
+  if (error) return { ok: false, error: "Erreur lors de l'enregistrement." };
+
+  revalidatePath(`/matchs/${matchId}`);
+  revalidatePath("/matchs");
   return { ok: true };
 }

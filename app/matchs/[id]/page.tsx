@@ -4,6 +4,7 @@ import { getMatchDetail, getConvocationsForMatch, getMissionsForMatch } from "@/
 import { teamLabel } from "@/lib/teams/constants";
 import { ConvocationsSection } from "./convocations-section";
 import { MissionsSection } from "./missions-section";
+import { ResultSection } from "./result-section";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", {
   weekday: "long",
@@ -28,8 +29,6 @@ export default async function MatchDetailPage({
     getMissionsForMatch(match.id),
   ]);
 
-  const hasScore = match.score_bvb !== null && match.score_adversaire !== null;
-
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
       <p className="text-sm text-anthracite/60">{match.team ? teamLabel(match.team) : ""}</p>
@@ -45,20 +44,12 @@ export default async function MatchDetailPage({
         {match.salle && <p className="text-sm text-anthracite/60">{match.salle}</p>}
         {match.division && <p className="mt-2 text-xs text-anthracite/40">{match.division}</p>}
 
-        {hasScore && (
-          <p className="mt-4 font-title text-3xl text-anthracite">
-            {match.score_bvb} – {match.score_adversaire}
-          </p>
-        )}
-
-        {match.note_coach && (
-          <div className="mt-4 rounded-lg bg-anthracite/5 p-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-anthracite/40">
-              Note du coach
-            </p>
-            <p className="mt-1 text-sm text-anthracite">{match.note_coach}</p>
-          </div>
-        )}
+        <ResultSection
+          matchId={match.id}
+          initialScoreBvb={match.score_bvb}
+          initialScoreAdversaire={match.score_adversaire}
+          initialNoteCoach={match.note_coach}
+        />
       </section>
 
       <div className="mt-6 flex flex-col gap-6">
