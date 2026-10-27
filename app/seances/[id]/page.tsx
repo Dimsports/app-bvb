@@ -31,12 +31,20 @@ export default async function SeanceDetailPage({
         {seance.titre || DATE_FORMAT.format(new Date(`${seance.date}T00:00:00`))}
       </h1>
 
-      <Link
-        href={`/seances/${seance.id}/terrain`}
-        className="mt-4 flex h-14 items-center justify-center gap-2 rounded-xl bg-anthracite font-medium text-white"
-      >
-        ▶ Lancer en mode terrain
-      </Link>
+      <div className="mt-4 flex gap-3">
+        <Link
+          href={`/seances/${seance.id}/terrain`}
+          className="flex h-14 flex-1 items-center justify-center gap-2 rounded-xl bg-anthracite font-medium text-white"
+        >
+          ▶ Lancer en mode terrain
+        </Link>
+        <Link
+          href={`/seances/${seance.id}/appel`}
+          className="flex h-14 flex-1 items-center justify-center gap-2 rounded-xl border border-anthracite/20 font-medium text-anthracite"
+        >
+          Faire l&apos;appel
+        </Link>
+      </div>
 
       <div className="mt-6 flex flex-col gap-6">
         {canEdit ? (

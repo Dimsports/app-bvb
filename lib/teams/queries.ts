@@ -94,6 +94,20 @@ export async function getTeamDetail(teamId: string): Promise<TeamDetail | null> 
   };
 }
 
+export async function getTeamRoster(teamId: string): Promise<TeamMember[]> {
+  const supabase = getServiceClient();
+  const { data } = await supabase
+    .from("team_roster")
+    .select("members(id, prenom, nom, roles)")
+    .eq("team_id", teamId);
+
+  const roster = (data ?? [])
+    .map((r) => r.members as unknown as TeamMember | null)
+    .filter((m): m is TeamMember => Boolean(m));
+
+  return roster.sort((a, b) => a.nom.localeCompare(b.nom));
+}
+
 export async function isTeamStaff(teamId: string, memberId: string): Promise<boolean> {
   const supabase = getServiceClient();
   const { data } = await supabase

@@ -123,3 +123,12 @@ export async function getSeanceDetail(id: string): Promise<SeanceDetail | null> 
     blocs,
   };
 }
+
+export async function getSeancePresences(seanceId: string): Promise<Set<string>> {
+  const supabase = getServiceClient();
+  const { data } = await supabase
+    .from("seance_presences")
+    .select("member_id")
+    .eq("seance_id", seanceId);
+  return new Set((data ?? []).map((r) => r.member_id as string));
+}
