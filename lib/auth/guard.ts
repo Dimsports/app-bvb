@@ -2,6 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { getSession, type SessionPayload } from "./session";
 import { isTeamStaff } from "@/lib/teams/queries";
+import { isPlayerStaff } from "@/lib/players/queries";
 
 export async function requireSession(): Promise<SessionPayload> {
   const session = await getSession();
@@ -48,6 +49,29 @@ export async function requireTeamEditor(teamId: string): Promise<SessionPayload>
   const session = await requireRole("entraineur");
   if (!session.roles.includes("admin") && !(await isTeamStaff(teamId, session.memberId))) {
     redirect("/seances");
+  }
+  return session;
+}
+
+/**
+ * Fiche joueur (lecture) : entraineur/coach rattachés à une équipe du
+ * joueur, ou admin.
+ */
+export async function requirePlayerAccess(playerId: string): Promise<SessionPayload> {
+  const session = await requireAnyRole(["entraineur", "coach"]);
+  if (!session.roles.includes("admin") && !(await isPlayerStaff(playerId, session.memberId))) {
+    redirect("/equipes");
+  }
+  return session;
+}
+
+/**
+ * Fiche joueur (édition) : entraineur rattaché (pas coach), ou admin.
+ */
+export async function requirePlayerEditor(playerId: string): Promise<SessionPayload> {
+  const session = await requireRole("entraineur");
+  if (!session.roles.includes("admin") && !(await isPlayerStaff(playerId, session.memberId))) {
+    redirect("/equipes");
   }
   return session;
 }

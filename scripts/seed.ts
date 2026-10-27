@@ -137,6 +137,27 @@ async function main() {
     .insert(joueurPrenoms.map((p) => ({ team_id: team.id, member_id: byName(p) })));
   if (rosterError) throw rosterError;
 
+  console.log("Création des fiches joueur de démo…");
+  const { error: profilesError } = await supabase.from("player_profiles").insert([
+    {
+      member_id: byName("Léo"),
+      date_naissance: "2011-03-14",
+      poste: "Meneur",
+      contact_nom: "Marc (père)",
+      contact_telephone: "06 00 00 00 01",
+      contact_email: "marc.demo@example.com",
+    },
+    {
+      member_id: byName("Nina"),
+      date_naissance: "2011-07-22",
+      poste: "Ailière",
+      contact_nom: "Sandrine (mère)",
+      contact_telephone: "06 00 00 00 02",
+      contact_email: "sandrine.demo@example.com",
+    },
+  ]);
+  if (profilesError) throw profilesError;
+
   console.log("\nMembres de démo créés :\n");
   console.table(
     demoMembers.map((m) => ({

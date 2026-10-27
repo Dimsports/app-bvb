@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
 import { requireAnyRole } from "@/lib/auth/guard";
 import { getTeamDetail, isTeamStaff } from "@/lib/teams/queries";
 import { teamLabel, jourLabel } from "@/lib/teams/constants";
@@ -58,8 +59,10 @@ export default async function MonEquipeDetailPage({
           </div>
           <ul className="mt-3 flex flex-col gap-1">
             {team.roster.map((m) => (
-              <li key={m.id} className="text-sm text-anthracite">
-                {m.prenom} {m.nom}
+              <li key={m.id} className="text-sm">
+                <Link href={`/joueurs/${m.id}`} className="text-anthracite hover:underline">
+                  {m.prenom} {m.nom}
+                </Link>
               </li>
             ))}
             {team.roster.length === 0 && (
