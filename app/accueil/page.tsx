@@ -4,7 +4,7 @@ import { getMemberById } from "@/lib/members/get-member";
 import { ROLE_LABELS, isRole } from "@/lib/members/roles";
 import { logoutAction } from "@/lib/auth/actions";
 import { getSeancesForMember } from "@/lib/seances/queries";
-import { getMatchesForMember, getConvocationsForPlayer } from "@/lib/matches/queries";
+import { getMatchesForMember, getConvocationsForPlayer, getMissionsFeed } from "@/lib/matches/queries";
 import { teamLabel } from "@/lib/teams/constants";
 import { getServiceClient } from "@/lib/supabase/server";
 import { ConvocationCard } from "./convocation-card";
@@ -34,12 +34,14 @@ export default async function AccueilPage() {
   const isEntraineur = session.roles.includes("entraineur");
   const isCoach = session.roles.includes("coach");
   const isJoueur = session.roles.includes("joueur");
+  const isBenevole = session.roles.includes("benevole");
 
   const seances =
     isEntraineur || isCoach ? await getSeancesForMember(session.memberId, isAdmin) : [];
   const matches =
     isEntraineur || isCoach ? await getMatchesForMember(session.memberId, isAdmin) : [];
   const playerConvocations = isJoueur ? await getConvocationsForPlayer(session.memberId) : [];
+  const missionsFeed = isBenevole ? await getMissionsFeed(session.memberId) : [];
 
   const today = isoDate();
   const nextMatch = matches.find((m) => m.date >= today) ?? null;
@@ -64,7 +66,13 @@ export default async function AccueilPage() {
     teamCount = tCount ?? 0;
   }
 
-  const hasRoleContent = isAdmin || isEntraineur || isCoach || isJoueur;
+  const openMissionsCount = missionsFeed.reduce(
+    (sum, entry) =>
+      sum + entry.missions.filter((m) => !m.estInscrit && m.inscritCount < m.besoin).length,
+    0
+  );
+
+  const hasRoleContent = isAdmin || isEntraineur || isCoach || isJoueur || isBenevole;
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
@@ -205,6 +213,23 @@ export default async function AccueilPage() {
               <p className="text-sm text-anthracite/60">Aucune convocation en attente.</p>
             </section>
           ))}
+
+        {isBenevole && (
+          <Link
+            href="/missions"
+            className="flex items-center justify-between rounded-2xl bg-card p-5 shadow-sm"
+          >
+            <div>
+              <h2 className="font-medium text-anthracite">Missions bénévoles</h2>
+              <p className="mt-1 text-sm text-anthracite/60">
+                {openMissionsCount > 0
+                  ? `${openMissionsCount} mission${openMissionsCount > 1 ? "s" : ""} à pourvoir`
+                  : "Aucun besoin pour l'instant"}
+              </p>
+            </div>
+            <span className="text-anthracite/40">→</span>
+          </Link>
+        )}
 
         {!hasRoleContent && (
           <section className="rounded-2xl bg-card p-5 shadow-sm">

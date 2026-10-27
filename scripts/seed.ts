@@ -201,6 +201,44 @@ async function main() {
   if (blocsError) throw blocsError;
   console.log(`Séance de démo créée pour le ${seanceDate} (${blocsPlan.length} blocs).`);
 
+  console.log("Création d'un match de démo avec missions bénévoles…");
+  const nextSaturday = new Date();
+  nextSaturday.setDate(nextSaturday.getDate() + ((6 - nextSaturday.getDay() + 7) % 7 || 7));
+  const matchDate = nextSaturday.toISOString().slice(0, 10);
+
+  const { data: match, error: matchError } = await supabase
+    .from("matches")
+    .insert({
+      team_id: team.id,
+      ffbb_numero: "DEMO-001",
+      division: "Démo-T1",
+      adversaire: "Adversaire Démo",
+      domicile: true,
+      date: matchDate,
+      heure: "14:00",
+      salle: "Salle des sports",
+    })
+    .select("id")
+    .single();
+  if (matchError) throw matchError;
+
+  const { data: missions, error: missionsError } = await supabase
+    .from("match_missions")
+    .insert([
+      { match_id: match.id, titre: "Table de marque", besoin: 1 },
+      { match_id: match.id, titre: "Buvette", besoin: 2 },
+    ])
+    .select("id, titre");
+  if (missionsError) throw missionsError;
+
+  const buvette = missions!.find((m) => m.titre === "Buvette")!;
+  const { error: inscriptionError } = await supabase
+    .from("match_mission_inscriptions")
+    .insert({ mission_id: buvette.id, member_id: byName("Julie") });
+  if (inscriptionError) throw inscriptionError;
+
+  console.log(`Match de démo créé pour le ${matchDate} avec 2 missions bénévoles.`);
+
   console.log("\nConnexion : cherchez le nom sur /connexion, puis entrez le code ci-dessus.");
 }
 

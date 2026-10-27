@@ -83,3 +83,41 @@ export async function respondConvocation(
   revalidatePath(`/matchs/${matchId}`);
   return { ok: true };
 }
+
+export async function addMission(
+  matchId: string,
+  titre: string,
+  besoin: number
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const teamId = await getMatchTeamId(matchId);
+  if (!teamId) return { ok: false, error: "Match introuvable." };
+  await requireTeamEditor(teamId);
+
+  const cleanTitre = titre.trim();
+  if (!cleanTitre) return { ok: false, error: "Titre requis." };
+  if (!Number.isInteger(besoin) || besoin < 1 || besoin > 20) {
+    return { ok: false, error: "Nombre de bénévoles invalide." };
+  }
+
+  const supabase = getServiceClient();
+  const { error } = await supabase
+    .from("match_missions")
+    .insert({ match_id: matchId, titre: cleanTitre, besoin });
+  if (error) return { ok: false, error: "Erreur lors de l'ajout." };
+
+  revalidatePath(`/matchs/${matchId}`);
+  return { ok: true };
+}
+
+export async function removeMission(matchId: string, missionId: string): Promise<{ ok: boolean }> {
+  const teamId = await getMatchTeamId(matchId);
+  if (!teamId) return { ok: false };
+  await requireTeamEditor(teamId);
+
+  const supabase = getServiceClient();
+  const { error } = await supabase.from("match_missions").delete().eq("id", missionId);
+  if (error) return { ok: false };
+
+  revalidatePath(`/matchs/${matchId}`);
+  return { ok: true };
+}

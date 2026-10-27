@@ -127,3 +127,106 @@ export async function getConvocationsForPlayer(memberId: string): Promise<Player
 
   return rows.sort((a, b) => a.match.date.localeCompare(b.match.date));
 }
+
+export type Mission = {
+  id: string;
+  match_id: string;
+  titre: string;
+  besoin: number;
+  inscrits: TeamMember[];
+};
+
+export async function getMissionsForMatch(matchId: string): Promise<Mission[]> {
+  const supabase = getServiceClient();
+  const { data: missions } = await supabase
+    .from("match_missions")
+    .select("id, match_id, titre, besoin")
+    .eq("match_id", matchId);
+
+  if (!missions || missions.length === 0) return [];
+
+  const { data: inscriptions } = await supabase
+    .from("match_mission_inscriptions")
+    .select("mission_id, members(id, prenom, nom, roles)")
+    .in(
+      "mission_id",
+      missions.map((m) => m.id)
+    );
+
+  const inscritsByMission = new Map<string, TeamMember[]>();
+  for (const row of inscriptions ?? []) {
+    const member = row.members as unknown as TeamMember | null;
+    if (!member) continue;
+    const list = inscritsByMission.get(row.mission_id) ?? [];
+    list.push(member);
+    inscritsByMission.set(row.mission_id, list);
+  }
+
+  return missions.map((m) => ({ ...m, inscrits: inscritsByMission.get(m.id) ?? [] }));
+}
+
+export type MissionFeedEntry = {
+  match: Match;
+  missions: Array<{ id: string; titre: string; besoin: number; inscritCount: number; estInscrit: boolean }>;
+};
+
+export async function getMissionsFeed(memberId: string): Promise<MissionFeedEntry[]> {
+  const supabase = getServiceClient();
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { data: matchRows } = await supabase
+    .from("matches")
+    .select(
+      "id, team_id, ffbb_numero, division, adversaire, domicile, date, heure, salle, score_bvb, score_adversaire, note_coach, teams(id, categorie, genre, nom)"
+    )
+    .gte("date", today)
+    .order("date", { ascending: true });
+
+  if (!matchRows || matchRows.length === 0) return [];
+
+  const matchIds = matchRows.map((m) => m.id);
+  const { data: missionRows } = await supabase
+    .from("match_missions")
+    .select("id, match_id, titre, besoin")
+    .in("match_id", matchIds);
+
+  if (!missionRows || missionRows.length === 0) return [];
+
+  const missionIds = missionRows.map((m) => m.id);
+  const { data: inscriptionRows } = await supabase
+    .from("match_mission_inscriptions")
+    .select("mission_id, member_id")
+    .in("mission_id", missionIds);
+
+  const countByMission = new Map<string, number>();
+  const mineByMission = new Set<string>();
+  for (const row of inscriptionRows ?? []) {
+    countByMission.set(row.mission_id, (countByMission.get(row.mission_id) ?? 0) + 1);
+    if (row.member_id === memberId) mineByMission.add(row.mission_id);
+  }
+
+  const missionsByMatch = new Map<string, MissionFeedEntry["missions"]>();
+  for (const m of missionRows) {
+    const list = missionsByMatch.get(m.match_id) ?? [];
+    list.push({
+      id: m.id,
+      titre: m.titre,
+      besoin: m.besoin,
+      inscritCount: countByMission.get(m.id) ?? 0,
+      estInscrit: mineByMission.has(m.id),
+    });
+    missionsByMatch.set(m.match_id, list);
+  }
+
+  const feed: MissionFeedEntry[] = [];
+  for (const row of matchRows) {
+    const missions = missionsByMatch.get(row.id);
+    if (!missions || missions.length === 0) continue;
+    feed.push({
+      match: { ...row, team: row.teams as unknown as Match["team"] },
+      missions,
+    });
+  }
+
+  return feed;
+}

@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { requireTeamStaff } from "@/lib/auth/guard";
-import { getMatchDetail, getConvocationsForMatch } from "@/lib/matches/queries";
+import { getMatchDetail, getConvocationsForMatch, getMissionsForMatch } from "@/lib/matches/queries";
 import { teamLabel } from "@/lib/teams/constants";
 import { ConvocationsSection } from "./convocations-section";
+import { MissionsSection } from "./missions-section";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", {
   weekday: "long",
@@ -22,7 +23,10 @@ export default async function MatchDetailPage({
   const session = await requireTeamStaff(match.team_id);
   const canEdit = session.roles.includes("admin") || session.roles.includes("entraineur");
 
-  const convocations = await getConvocationsForMatch(match.id, match.team_id);
+  const [convocations, missions] = await Promise.all([
+    getConvocationsForMatch(match.id, match.team_id),
+    getMissionsForMatch(match.id),
+  ]);
 
   const hasScore = match.score_bvb !== null && match.score_adversaire !== null;
 
@@ -57,8 +61,9 @@ export default async function MatchDetailPage({
         )}
       </section>
 
-      <div className="mt-6">
+      <div className="mt-6 flex flex-col gap-6">
         <ConvocationsSection matchId={match.id} canEdit={canEdit} initialRows={convocations} />
+        <MissionsSection matchId={match.id} canEdit={canEdit} initialMissions={missions} />
       </div>
     </main>
   );
