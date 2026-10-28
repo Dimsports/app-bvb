@@ -5,6 +5,7 @@ import { ROLE_LABELS, isRole } from "@/lib/members/roles";
 import { logoutAction } from "@/lib/auth/actions";
 import { getSeancesForMember } from "@/lib/seances/queries";
 import { getMatchesForMember, getConvocationsForPlayer, getMissionsFeed } from "@/lib/matches/queries";
+import { getTodayEntry } from "@/lib/wellbeing/queries";
 import { teamLabel } from "@/lib/teams/constants";
 import { getServiceClient } from "@/lib/supabase/server";
 import { ConvocationCard } from "./convocation-card";
@@ -42,6 +43,7 @@ export default async function AccueilPage() {
     isEntraineur || isCoach ? await getMatchesForMember(session.memberId, isAdmin) : [];
   const playerConvocations = isJoueur ? await getConvocationsForPlayer(session.memberId) : [];
   const missionsFeed = isBenevole ? await getMissionsFeed(session.memberId) : [];
+  const wellbeingToday = isJoueur ? await getTodayEntry(session.memberId) : null;
 
   const today = isoDate();
   const nextMatch = matches.find((m) => m.date >= today) ?? null;
@@ -213,6 +215,21 @@ export default async function AccueilPage() {
               <p className="text-sm text-anthracite/60">Aucune convocation en attente.</p>
             </section>
           ))}
+
+        {isJoueur && (
+          <Link
+            href="/bien-etre"
+            className="flex items-center justify-between rounded-2xl bg-card p-5 shadow-sm"
+          >
+            <div>
+              <h2 className="font-medium text-anthracite">Bien-être</h2>
+              <p className="mt-1 text-sm text-anthracite/60">
+                {wellbeingToday ? "Déjà complété aujourd'hui" : "Questionnaire du jour à remplir"}
+              </p>
+            </div>
+            <span className="text-anthracite/40">→</span>
+          </Link>
+        )}
 
         {isBenevole && (
           <Link

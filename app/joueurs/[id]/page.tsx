@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requirePlayerAccess } from "@/lib/auth/guard";
 import { getPlayerDetail } from "@/lib/players/queries";
+import { getRecentEntries } from "@/lib/wellbeing/queries";
 import { teamLabel } from "@/lib/teams/constants";
 import { PlayerProfileSection } from "./player-profile-section";
 
@@ -17,9 +18,11 @@ export default async function PlayerDetailPage({
 
   const session = await requirePlayerAccess(id);
   const canEdit = session.roles.includes("admin") || session.roles.includes("entraineur");
+  const canSeeWellbeing = canEdit;
 
   const presencePercent =
     player.presenceTotal > 0 ? Math.round((player.presenceCount / player.presenceTotal) * 100) : null;
+  const wellbeingEntries = canSeeWellbeing ? await getRecentEntries(player.id, 7) : [];
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
@@ -64,6 +67,36 @@ export default async function PlayerDetailPage({
             <p className="mt-3 text-sm text-anthracite/50">Aucune séance passée pour l&apos;instant.</p>
           )}
         </section>
+
+        {canSeeWellbeing && (
+          <section className="rounded-2xl bg-card p-6 shadow-sm">
+            <h2 className="font-title text-xl text-anthracite">Bien-être</h2>
+            <p className="mt-1 text-xs text-anthracite/40">
+              Donnée de santé, visible uniquement par les entraineurs et l&apos;admin.
+            </p>
+
+            {wellbeingEntries.length > 0 ? (
+              <ul className="mt-3 flex flex-col gap-2">
+                {wellbeingEntries.map((w) => (
+                  <li key={w.id} className="rounded-lg bg-anthracite/5 px-3 py-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-anthracite">
+                        {DATE_FORMAT.format(new Date(`${w.date}T00:00:00`))}
+                      </span>
+                      <span className="text-anthracite/60">
+                        Sommeil {w.sommeil} · Forme {w.forme} · Courbatures {w.courbatures} · Moral{" "}
+                        {w.moral}
+                      </span>
+                    </div>
+                    {w.commentaire && <p className="mt-1 text-anthracite/70">{w.commentaire}</p>}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-3 text-sm text-anthracite/50">Aucune réponse pour l&apos;instant.</p>
+            )}
+          </section>
+        )}
       </div>
     </main>
   );

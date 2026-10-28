@@ -158,6 +158,18 @@ async function main() {
   ]);
   if (profilesError) throw profilesError;
 
+  console.log("Création d'un questionnaire bien-être de démo…");
+  const { error: wellbeingError } = await supabase.from("wellbeing_entries").insert({
+    member_id: byName("Nina"),
+    date: new Date().toISOString().slice(0, 10),
+    sommeil: 4,
+    forme: 3,
+    courbatures: 2,
+    moral: 5,
+    commentaire: "Petite douleur au genou droit après l'entrainement d'hier.",
+  });
+  if (wellbeingError) throw wellbeingError;
+
   console.log("\nMembres de démo créés :\n");
   console.table(
     demoMembers.map((m) => ({
