@@ -170,6 +170,14 @@ async function main() {
   });
   if (wellbeingError) throw wellbeingError;
 
+  console.log("Création d'une note de suivi de démo…");
+  const { error: noteError } = await supabase.from("player_notes").insert({
+    member_id: byName("Léo"),
+    author_id: byName("Sophie"),
+    contenu: "Bons progrès sur les passes à deux mains. À travailler : la main faible en dribble.",
+  });
+  if (noteError) throw noteError;
+
   console.log("\nMembres de démo créés :\n");
   console.table(
     demoMembers.map((m) => ({

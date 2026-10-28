@@ -2,8 +2,10 @@ import { notFound } from "next/navigation";
 import { requirePlayerAccess } from "@/lib/auth/guard";
 import { getPlayerDetail } from "@/lib/players/queries";
 import { getRecentEntries } from "@/lib/wellbeing/queries";
+import { getNotesForPlayer } from "@/lib/notes/queries";
 import { teamLabel } from "@/lib/teams/constants";
 import { PlayerProfileSection } from "./player-profile-section";
+import { PlayerNotesSection } from "./player-notes-section";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" });
 
@@ -23,6 +25,7 @@ export default async function PlayerDetailPage({
   const presencePercent =
     player.presenceTotal > 0 ? Math.round((player.presenceCount / player.presenceTotal) * 100) : null;
   const wellbeingEntries = canSeeWellbeing ? await getRecentEntries(player.id, 7) : [];
+  const notes = await getNotesForPlayer(player.id);
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
@@ -67,6 +70,13 @@ export default async function PlayerDetailPage({
             <p className="mt-3 text-sm text-anthracite/50">Aucune séance passée pour l&apos;instant.</p>
           )}
         </section>
+
+        <PlayerNotesSection
+          playerId={player.id}
+          currentMemberId={session.memberId}
+          canDeleteAny={canEdit}
+          initialNotes={notes}
+        />
 
         {canSeeWellbeing && (
           <section className="rounded-2xl bg-card p-6 shadow-sm">
