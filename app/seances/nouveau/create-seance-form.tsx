@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { teamLabel } from "@/lib/teams/constants";
 import type { Team } from "@/lib/teams/queries";
 import type { CycleOption } from "@/lib/cycles/queries";
+import { getVacanceForDate } from "@/lib/season/vacances";
 import { createSeance } from "../actions";
 
 function todayISO() {
@@ -23,6 +24,7 @@ export function CreateSeanceForm({ teams, cycles }: { teams: Team[]; cycles: Cyc
   const router = useRouter();
 
   const teamCycles = cycles.filter((c) => c.team_id === teamId);
+  const vacance = getVacanceForDate(date);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -81,6 +83,12 @@ export function CreateSeanceForm({ teams, cycles }: { teams: Team[]; cycles: Cyc
           className="h-12 rounded-lg border border-anthracite/20 px-3"
           required
         />
+        {vacance && (
+          <p className="text-xs text-anthracite/50">
+            {vacance.nom}
+            {vacance.dateFin ? ` jusqu'au ${vacance.dateFin.split("-").reverse().join("/")}` : ""}
+          </p>
+        )}
       </label>
 
       <div className="flex gap-3">

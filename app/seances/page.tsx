@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAnyRole } from "@/lib/auth/guard";
 import { getSeancesForMember } from "@/lib/seances/queries";
+import { getRelevantVacance } from "@/lib/season/vacances";
 import { teamLabel } from "@/lib/teams/constants";
 
 const WEEKDAY_FORMAT = new Intl.DateTimeFormat("fr-FR", {
@@ -9,11 +10,18 @@ const WEEKDAY_FORMAT = new Intl.DateTimeFormat("fr-FR", {
   month: "long",
 });
 
+const VACANCE_DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long" });
+
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default async function SeancesPage() {
   const session = await requireAnyRole(["entraineur", "coach"]);
   const isAdmin = session.roles.includes("admin");
   const seances = await getSeancesForMember(session.memberId, isAdmin);
   const canCreate = isAdmin || session.roles.includes("entraineur");
+  const vacance = getRelevantVacance(todayISO());
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
@@ -28,6 +36,15 @@ export default async function SeancesPage() {
           </Link>
         )}
       </div>
+
+      {vacance && (
+        <p className="mt-3 text-sm text-anthracite/50">
+          {vacance.nom}
+          {" · "}
+          {VACANCE_DATE_FORMAT.format(new Date(`${vacance.dateDebut}T00:00:00`))}
+          {vacance.dateFin ? ` – ${VACANCE_DATE_FORMAT.format(new Date(`${vacance.dateFin}T00:00:00`))}` : ""}
+        </p>
+      )}
 
       <ul className="mt-6 flex flex-col gap-3">
         {seances.map((s) => (
