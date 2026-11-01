@@ -298,6 +298,50 @@ async function main() {
 
   console.log(`Match de démo créé pour le ${matchDate} avec 2 missions bénévoles.`);
 
+  console.log("Création d'un match passé de démo avec historique bénévole…");
+  const lastSaturday = new Date();
+  lastSaturday.setDate(lastSaturday.getDate() - ((lastSaturday.getDay() + 1) % 7 || 7));
+  const pastMatchDate = lastSaturday.toISOString().slice(0, 10);
+
+  const { data: pastMatch, error: pastMatchError } = await supabase
+    .from("matches")
+    .insert({
+      team_id: team.id,
+      ffbb_numero: "DEMO-000",
+      division: "Démo-T1",
+      adversaire: "Ancien Adversaire Démo",
+      domicile: true,
+      date: pastMatchDate,
+      heure: "14:00",
+      salle: "Salle des sports",
+      score_bvb: 52,
+      score_adversaire: 48,
+    })
+    .select("id")
+    .single();
+  if (pastMatchError) throw pastMatchError;
+
+  const { data: pastMission, error: pastMissionError } = await supabase
+    .from("match_missions")
+    .insert({ match_id: pastMatch.id, titre: "Buvette", besoin: 2 })
+    .select("id")
+    .single();
+  if (pastMissionError) throw pastMissionError;
+
+  const { error: pastInscriptionError } = await supabase
+    .from("match_mission_inscriptions")
+    .insert({ mission_id: pastMission.id, member_id: byName("Julie") });
+  if (pastInscriptionError) throw pastInscriptionError;
+
+  console.log("Création d'un profil bénévole de démo…");
+  const { error: benevoleProfileError } = await supabase.from("benevole_profiles").insert({
+    member_id: byName("Julie"),
+    contact_telephone: "06 00 00 00 03",
+    contact_email: "julie.demo@example.com",
+    disponibilites: "Disponible les week-ends, pas le vendredi soir.",
+  });
+  if (benevoleProfileError) throw benevoleProfileError;
+
   console.log("\nConnexion : cherchez le nom sur /connexion, puis entrez le code ci-dessus.");
 }
 

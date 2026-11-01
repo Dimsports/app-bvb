@@ -230,3 +230,45 @@ export async function getMissionsFeed(memberId: string): Promise<MissionFeedEntr
 
   return feed;
 }
+
+export type MissionHistoryEntry = {
+  match: Match;
+  missionTitre: string;
+};
+
+export async function getMissionsHistoryForMember(memberId: string): Promise<MissionHistoryEntry[]> {
+  const supabase = getServiceClient();
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { data: inscriptionRows } = await supabase
+    .from("match_mission_inscriptions")
+    .select("match_missions(id, titre, match_id)")
+    .eq("member_id", memberId);
+
+  const missionsById = (inscriptionRows ?? [])
+    .map((r) => r.match_missions as unknown as { id: string; titre: string; match_id: string } | null)
+    .filter((m): m is { id: string; titre: string; match_id: string } => Boolean(m));
+
+  if (missionsById.length === 0) return [];
+
+  const matchIds = [...new Set(missionsById.map((m) => m.match_id))];
+  const { data: matchRows } = await supabase
+    .from("matches")
+    .select(
+      "id, team_id, ffbb_numero, division, adversaire, domicile, date, heure, salle, score_bvb, score_adversaire, note_coach, teams(id, categorie, genre, nom)"
+    )
+    .in("id", matchIds)
+    .lt("date", today)
+    .order("date", { ascending: false });
+
+  const matchById = new Map((matchRows ?? []).map((row) => [row.id, { ...row, team: row.teams as unknown as Match["team"] }]));
+
+  const history: MissionHistoryEntry[] = [];
+  for (const m of missionsById) {
+    const match = matchById.get(m.match_id);
+    if (!match) continue;
+    history.push({ match, missionTitre: m.titre });
+  }
+
+  return history.sort((a, b) => b.match.date.localeCompare(a.match.date));
+}

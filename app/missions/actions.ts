@@ -38,3 +38,23 @@ export async function toggleMyInscription(
   revalidatePath("/accueil");
   return { ok: true, inscrit: true };
 }
+
+export async function updateBenevoleProfile(fields: {
+  contact_telephone: string | null;
+  contact_email: string | null;
+  disponibilites: string | null;
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await requireRole("benevole");
+  const supabase = getServiceClient();
+
+  const { error } = await supabase.from("benevole_profiles").upsert({
+    member_id: session.memberId,
+    contact_telephone: fields.contact_telephone?.trim() || null,
+    contact_email: fields.contact_email?.trim() || null,
+    disponibilites: fields.disponibilites?.trim() || null,
+  });
+  if (error) return { ok: false, error: "Erreur lors de l'enregistrement." };
+
+  revalidatePath("/missions");
+  return { ok: true };
+}
