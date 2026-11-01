@@ -342,6 +342,36 @@ async function main() {
   });
   if (benevoleProfileError) throw benevoleProfileError;
 
+  console.log("Création d'un objectif de projet club de démo…");
+  const echeance = new Date();
+  echeance.setDate(echeance.getDate() + 45);
+  const { data: objectif, error: objectifError } = await supabase
+    .from("projet_objectifs")
+    .insert({
+      titre: "Renouveler le parc de ballons",
+      description: "Les ballons U15 sont usés, prévoir un budget pour la rentrée.",
+    })
+    .select("id")
+    .single();
+  if (objectifError) throw objectifError;
+
+  const { error: actionsError } = await supabase.from("projet_actions").insert([
+    {
+      objectif_id: objectif.id,
+      titre: "Demander 3 devis",
+      responsable_id: byName("Sophie"),
+      echeance: echeance.toISOString().slice(0, 10),
+      statut: "en_cours",
+    },
+    {
+      objectif_id: objectif.id,
+      titre: "Valider le budget en bureau",
+      responsable_id: byName("Admin"),
+      statut: "a_faire",
+    },
+  ]);
+  if (actionsError) throw actionsError;
+
   console.log("\nConnexion : cherchez le nom sur /connexion, puis entrez le code ci-dessus.");
 }
 

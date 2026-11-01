@@ -312,6 +312,14 @@ export default async function AccueilPage() {
             </Link>
           </>
         )}
+        {(isAdmin || isEntraineur) && (
+          <Link
+            href="/projet"
+            className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
+          >
+            Projet club
+          </Link>
+        )}
       </div>
     </main>
   );
