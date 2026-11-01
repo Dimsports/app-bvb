@@ -276,6 +276,12 @@ export default async function AccueilPage() {
             >
               Gérer les matchs
             </Link>
+            <Link
+              href="/admin/benevoles"
+              className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
+            >
+              Bénévoles
+            </Link>
           </>
         )}
         {(isEntraineur || isCoach) && (
