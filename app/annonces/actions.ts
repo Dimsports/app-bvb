@@ -2,6 +2,7 @@
 
 import { requireRole } from "@/lib/auth/guard";
 import { getServiceClient } from "@/lib/supabase/server";
+import { sendPushToAll } from "@/lib/push/send";
 import { revalidatePath } from "next/cache";
 
 export async function createAnnonce(
@@ -22,6 +23,17 @@ export async function createAnnonce(
 
   revalidatePath("/annonces");
   revalidatePath("/accueil");
+
+  try {
+    await sendPushToAll({
+      title: cleanTitre,
+      body: cleanContenu.length > 120 ? `${cleanContenu.slice(0, 117)}…` : cleanContenu,
+      url: "/annonces",
+    });
+  } catch (err) {
+    console.error("sendPushToAll error", err);
+  }
+
   return { ok: true };
 }
 

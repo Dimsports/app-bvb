@@ -1,6 +1,7 @@
 import { requireSession } from "@/lib/auth/guard";
 import { getAnnonces } from "@/lib/annonces/queries";
 import { AnnonceFeed } from "./annonce-feed";
+import { PushToggle } from "./push-toggle";
 
 export default async function AnnoncesPage() {
   const session = await requireSession();
@@ -12,7 +13,8 @@ export default async function AnnoncesPage() {
       <h1 className="font-title text-2xl text-anthracite">Annonces</h1>
       <p className="mt-1 text-sm text-anthracite/60">Informations du club.</p>
 
-      <div className="mt-6">
+      <div className="mt-6 flex flex-col gap-4">
+        <PushToggle />
         <AnnonceFeed canPost={canPost} initialAnnonces={annonces} />
       </div>
     </main>
