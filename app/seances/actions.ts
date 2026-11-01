@@ -23,6 +23,7 @@ const createSchema = z.object({
   heureDebut: z.string().regex(/^\d{2}:\d{2}$/).optional().or(z.literal("")),
   heureFin: z.string().regex(/^\d{2}:\d{2}$/).optional().or(z.literal("")),
   titre: z.string().trim().max(200).optional(),
+  cycleId: z.string().uuid().optional().or(z.literal("")),
 });
 
 export async function createSeance(input: {
@@ -31,6 +32,7 @@ export async function createSeance(input: {
   heureDebut: string;
   heureFin: string;
   titre: string;
+  cycleId?: string;
 }): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const parsed = createSchema.safeParse(input);
   if (!parsed.success) {
@@ -47,6 +49,7 @@ export async function createSeance(input: {
       heure_debut: parsed.data.heureDebut || null,
       heure_fin: parsed.data.heureFin || null,
       titre: parsed.data.titre || null,
+      cycle_id: parsed.data.cycleId || null,
     })
     .select("id")
     .single();

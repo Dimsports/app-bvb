@@ -206,6 +206,23 @@ async function main() {
 
   const exerciceIdByTitre = (titre: string) => insertedExercises!.find((e) => e.titre === titre)!.id;
 
+  console.log("Création d'un cycle de démo…");
+  const cycleStart = new Date();
+  const cycleEnd = new Date();
+  cycleEnd.setDate(cycleEnd.getDate() + 27);
+  const { data: cycle, error: cycleError } = await supabase
+    .from("cycles")
+    .insert({
+      team_id: team.id,
+      nom: "Prise de repères",
+      date_debut: cycleStart.toISOString().slice(0, 10),
+      date_fin: cycleEnd.toISOString().slice(0, 10),
+      objectif: "Poser les bases collectives avant les premiers matchs.",
+    })
+    .select("id")
+    .single();
+  if (cycleError) throw cycleError;
+
   console.log("Création d'une séance de démo…");
   const nextTuesday = new Date();
   nextTuesday.setDate(nextTuesday.getDate() + ((2 - nextTuesday.getDay() + 7) % 7 || 7));
@@ -219,6 +236,7 @@ async function main() {
       heure_debut: "18:00",
       heure_fin: "19:30",
       titre: "Défense sur porteur de balle",
+      cycle_id: cycle.id,
     })
     .select("id")
     .single();

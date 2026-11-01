@@ -4,21 +4,25 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { teamLabel } from "@/lib/teams/constants";
 import type { Team } from "@/lib/teams/queries";
+import type { CycleOption } from "@/lib/cycles/queries";
 import { createSeance } from "../actions";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function CreateSeanceForm({ teams }: { teams: Team[] }) {
+export function CreateSeanceForm({ teams, cycles }: { teams: Team[]; cycles: CycleOption[] }) {
   const [teamId, setTeamId] = useState(teams[0]?.id ?? "");
   const [date, setDate] = useState(todayISO());
   const [heureDebut, setHeureDebut] = useState("18:00");
   const [heureFin, setHeureFin] = useState("19:30");
   const [titre, setTitre] = useState("");
+  const [cycleId, setCycleId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
+  const teamCycles = cycles.filter((c) => c.team_id === teamId);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -30,7 +34,7 @@ export function CreateSeanceForm({ teams }: { teams: Team[] }) {
     }
 
     startTransition(async () => {
-      const result = await createSeance({ teamId, date, heureDebut, heureFin, titre });
+      const result = await createSeance({ teamId, date, heureDebut, heureFin, titre, cycleId });
       if (!result.ok) {
         setError(result.error);
         return;
@@ -54,7 +58,10 @@ export function CreateSeanceForm({ teams }: { teams: Team[] }) {
         <span className="text-sm text-anthracite/60">Équipe</span>
         <select
           value={teamId}
-          onChange={(e) => setTeamId(e.target.value)}
+          onChange={(e) => {
+            setTeamId(e.target.value);
+            setCycleId("");
+          }}
           className="h-12 rounded-lg border border-anthracite/20 px-3"
         >
           {teams.map((t) => (
@@ -106,6 +113,24 @@ export function CreateSeanceForm({ teams }: { teams: Team[] }) {
           className="h-12 rounded-lg border border-anthracite/20 px-3"
         />
       </label>
+
+      {teamCycles.length > 0 && (
+        <label className="flex flex-col gap-1">
+          <span className="text-sm text-anthracite/60">Cycle (optionnel)</span>
+          <select
+            value={cycleId}
+            onChange={(e) => setCycleId(e.target.value)}
+            className="h-12 rounded-lg border border-anthracite/20 px-3"
+          >
+            <option value="">Aucun cycle</option>
+            {teamCycles.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nom}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

@@ -2,7 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { requireAnyRole } from "@/lib/auth/guard";
 import { getTeamDetail, isTeamStaff } from "@/lib/teams/queries";
+import { getCyclesForTeam } from "@/lib/cycles/queries";
 import { teamLabel, jourLabel } from "@/lib/teams/constants";
+import { CyclesSection } from "./cycles-section";
 
 export default async function MonEquipeDetailPage({
   params,
@@ -19,6 +21,9 @@ export default async function MonEquipeDetailPage({
 
   const team = await getTeamDetail(id);
   if (!team) notFound();
+
+  const canEdit = isAdmin || session.roles.includes("entraineur");
+  const cycles = await getCyclesForTeam(id);
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
@@ -70,6 +75,8 @@ export default async function MonEquipeDetailPage({
             )}
           </ul>
         </section>
+
+        <CyclesSection teamId={team.id} canEdit={canEdit} initialCycles={cycles} />
       </div>
     </main>
   );
