@@ -372,6 +372,14 @@ async function main() {
   ]);
   if (actionsError) throw actionsError;
 
+  console.log("Création d'une annonce de démo…");
+  const { error: annonceError } = await supabase.from("annonces").insert({
+    titre: "Reprise des entrainements après la Toussaint",
+    contenu: "Les entrainements reprennent normalement dès mardi. Pensez à vérifier le matériel avant la rentrée.",
+    author_id: byName("Sophie"),
+  });
+  if (annonceError) throw annonceError;
+
   console.log("\nConnexion : cherchez le nom sur /connexion, puis entrez le code ci-dessus.");
 }
 
