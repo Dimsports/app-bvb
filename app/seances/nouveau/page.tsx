@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth/guard";
 import { getAllTeams, getTeamsForMember } from "@/lib/teams/queries";
 import { getCycleOptionsForTeams } from "@/lib/cycles/queries";
+import { PageHeader } from "@/components/page-header";
 import { CreateSeanceForm } from "./create-seance-form";
 
 export default async function NouvelleSeancePage() {
@@ -11,7 +12,7 @@ export default async function NouvelleSeancePage() {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <h1 className="font-title text-2xl text-anthracite">Nouvelle séance</h1>
+      <PageHeader title="Nouvelle séance" backHref="/seances" />
       <div className="mt-6">
         <CreateSeanceForm teams={teams} cycles={cycles} />
       </div>

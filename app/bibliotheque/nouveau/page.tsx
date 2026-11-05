@@ -1,4 +1,5 @@
 import { requireAnyRole } from "@/lib/auth/guard";
+import { PageHeader } from "@/components/page-header";
 import { ExerciseForm } from "../exercise-form";
 
 export default async function NouvelExercicePage() {
@@ -6,7 +7,7 @@ export default async function NouvelExercicePage() {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <h1 className="font-title text-2xl text-anthracite">Nouvel exercice</h1>
+      <PageHeader title="Nouvel exercice" backHref="/bibliotheque" />
       <div className="mt-6">
         <ExerciseForm mode="create" />
       </div>

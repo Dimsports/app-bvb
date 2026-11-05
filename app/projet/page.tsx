@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/auth/guard";
 import { getObjectifs, getAllMembersForAssignment } from "@/lib/projet/queries";
+import { PageHeader } from "@/components/page-header";
 import { ObjectifsBoard } from "./objectifs-board";
 
 export default async function ProjetPage() {
@@ -8,7 +9,7 @@ export default async function ProjetPage() {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <h1 className="font-title text-2xl text-anthracite">Projet club</h1>
+      <PageHeader title="Projet club" backHref="/accueil" />
       <p className="mt-1 text-sm text-anthracite/60">Objectifs, actions, responsables et échéances.</p>
 
       <div className="mt-6">

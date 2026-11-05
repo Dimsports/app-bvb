@@ -3,6 +3,7 @@ import { requireTeamStaff } from "@/lib/auth/guard";
 import { getSeanceDetail } from "@/lib/seances/queries";
 import Link from "next/link";
 import { teamLabel } from "@/lib/teams/constants";
+import { PageHeader } from "@/components/page-header";
 import { SeanceInfoForm } from "./seance-info-form";
 import { BlocEditor } from "./bloc-editor";
 
@@ -24,12 +25,15 @@ export default async function SeanceDetailPage({
   const session = await requireTeamStaff(seance.team_id);
   const canEdit = session.roles.includes("admin") || session.roles.includes("entraineur");
 
+  const dateLabel = DATE_FORMAT.format(new Date(`${seance.date}T00:00:00`));
+
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <p className="text-sm text-anthracite/60">{seance.team ? teamLabel(seance.team) : ""}</p>
-      <h1 className={`font-title text-2xl text-anthracite ${seance.titre ? "" : "capitalize"}`}>
-        {seance.titre || DATE_FORMAT.format(new Date(`${seance.date}T00:00:00`))}
-      </h1>
+      <PageHeader
+        title={seance.titre || dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)}
+        backHref="/seances"
+        subtitle={seance.team ? teamLabel(seance.team) : null}
+      />
 
       <div className="mt-4 flex gap-3">
         <Link

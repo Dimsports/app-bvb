@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/auth/guard";
 import { getAllMatches } from "@/lib/matches/queries";
 import { getAllTeams } from "@/lib/teams/queries";
 import { teamLabel } from "@/lib/teams/constants";
+import { PageHeader } from "@/components/page-header";
 import { ImportForm } from "./import-form";
 import { DeleteMatchButton } from "./delete-match-button";
 
@@ -18,7 +19,7 @@ export default async function AdminMatchsPage() {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <h1 className="font-title text-2xl text-anthracite">Matchs</h1>
+      <PageHeader title="Matchs" backHref="/accueil" />
 
       <div className="mt-6 flex flex-col gap-6">
         <ImportForm teams={teams} />

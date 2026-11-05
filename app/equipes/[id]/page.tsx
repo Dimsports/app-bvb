@@ -4,6 +4,7 @@ import { requireAnyRole } from "@/lib/auth/guard";
 import { getTeamDetail, isTeamStaff } from "@/lib/teams/queries";
 import { getCyclesForTeam } from "@/lib/cycles/queries";
 import { teamLabel, jourLabel } from "@/lib/teams/constants";
+import { PageHeader } from "@/components/page-header";
 import { CyclesSection } from "./cycles-section";
 
 export default async function MonEquipeDetailPage({
@@ -27,8 +28,7 @@ export default async function MonEquipeDetailPage({
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <h1 className="font-title text-2xl text-anthracite">{teamLabel(team)}</h1>
-      {team.gymnase && <p className="mt-1 text-sm text-anthracite/60">{team.gymnase}</p>}
+      <PageHeader title={teamLabel(team)} backHref="/equipes" subtitle={team.gymnase} />
 
       <div className="mt-6 flex flex-col gap-6">
         <section className="rounded-2xl bg-card p-6 shadow-sm">

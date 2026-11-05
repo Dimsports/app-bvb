@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAnyRole } from "@/lib/auth/guard";
 import { getExercises } from "@/lib/exercises/queries";
 import { PARTIE_LABELS, PARTIE_COLOR_VAR, isPartie } from "@/lib/exercises/constants";
+import { PageHeader } from "@/components/page-header";
 import { Filters } from "./filters";
 
 export default async function BibliothequePage({
@@ -16,13 +17,12 @@ export default async function BibliothequePage({
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="font-title text-2xl text-anthracite">Bibliothèque d&apos;exercices</h1>
-          <p className="mt-1 text-sm text-anthracite/60">
-            {exercises.length} exercice{exercises.length > 1 ? "s" : ""}
-          </p>
-        </div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <PageHeader
+          title="Bibliothèque d'exercices"
+          backHref="/accueil"
+          subtitle={`${exercises.length} exercice${exercises.length > 1 ? "s" : ""}`}
+        />
         {canEdit && (
           <Link
             href="/bibliotheque/nouveau"

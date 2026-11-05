@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireAnyRole } from "@/lib/auth/guard";
 import { getExercise } from "@/lib/exercises/queries";
 import { PARTIE_LABELS, isPartie } from "@/lib/exercises/constants";
+import { PageHeader } from "@/components/page-header";
 import { ExerciseForm } from "../exercise-form";
 import { MediaManager } from "./media-manager";
 import { DeleteButton } from "./delete-button";
@@ -20,7 +21,7 @@ export default async function ExerciceDetailPage({
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <h1 className="font-title text-2xl text-anthracite">{exercise.titre}</h1>
+      <PageHeader title={exercise.titre} backHref="/bibliotheque" />
 
       <div className="mt-6 flex flex-col gap-6">
         {canEdit ? (

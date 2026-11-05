@@ -1,5 +1,6 @@
 import { requireSession } from "@/lib/auth/guard";
 import { getAnnonces } from "@/lib/annonces/queries";
+import { PageHeader } from "@/components/page-header";
 import { AnnonceFeed } from "./annonce-feed";
 import { PushToggle } from "./push-toggle";
 
@@ -10,7 +11,7 @@ export default async function AnnoncesPage() {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <h1 className="font-title text-2xl text-anthracite">Annonces</h1>
+      <PageHeader title="Annonces" backHref="/accueil" />
       <p className="mt-1 text-sm text-anthracite/60">Informations du club.</p>
 
       <div className="mt-6 flex flex-col gap-4">

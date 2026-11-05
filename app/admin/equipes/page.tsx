@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth/guard";
 import { getAllTeams } from "@/lib/teams/queries";
 import { teamLabel } from "@/lib/teams/constants";
+import { PageHeader } from "@/components/page-header";
 import { CreateTeamForm } from "./create-team-form";
 
 export default async function AdminEquipesPage() {
@@ -10,7 +11,7 @@ export default async function AdminEquipesPage() {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <h1 className="font-title text-2xl text-anthracite">Équipes</h1>
+      <PageHeader title="Équipes" backHref="/accueil" />
       <p className="mt-1 text-sm text-anthracite/60">
         Catégorie, staff, effectif et créneaux d&apos;entraînement.
       </p>

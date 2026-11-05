@@ -4,6 +4,7 @@ import { getPlayerDetail } from "@/lib/players/queries";
 import { getRecentEntries } from "@/lib/wellbeing/queries";
 import { getNotesForPlayer } from "@/lib/notes/queries";
 import { teamLabel } from "@/lib/teams/constants";
+import { PageHeader } from "@/components/page-header";
 import { PlayerProfileSection } from "./player-profile-section";
 import { PlayerNotesSection } from "./player-notes-section";
 
@@ -27,14 +28,15 @@ export default async function PlayerDetailPage({
   const wellbeingEntries = canSeeWellbeing ? await getRecentEntries(player.id, 7) : [];
   const notes = await getNotesForPlayer(player.id);
 
+  const backHref = player.teams[0] ? `/equipes/${player.teams[0].id}` : "/equipes";
+
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <p className="text-sm text-anthracite/60">
-        {player.teams.map((t) => teamLabel(t)).join(" · ") || "Aucune équipe"}
-      </p>
-      <h1 className="font-title text-2xl text-anthracite">
-        {player.prenom} {player.nom}
-      </h1>
+      <PageHeader
+        title={`${player.prenom} ${player.nom}`}
+        backHref={backHref}
+        subtitle={player.teams.map((t) => teamLabel(t)).join(" · ") || "Aucune équipe"}
+      />
 
       <div className="mt-6 flex flex-col gap-6">
         <PlayerProfileSection playerId={player.id} canEdit={canEdit} initialProfile={player.profile} />

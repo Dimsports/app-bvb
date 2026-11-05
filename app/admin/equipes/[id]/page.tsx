@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth/guard";
 import { getTeamDetail } from "@/lib/teams/queries";
 import { teamLabel } from "@/lib/teams/constants";
+import { PageHeader } from "@/components/page-header";
 import { TeamInfoForm } from "./team-info-form";
 import { CreneauxSection } from "./creneaux-section";
 import { MemberAssignList } from "./member-assign-list";
@@ -26,7 +27,7 @@ export default async function AdminTeamDetailPage({
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <h1 className="font-title text-2xl text-anthracite">{teamLabel(team)}</h1>
+      <PageHeader title={teamLabel(team)} backHref="/admin/equipes" />
 
       <div className="mt-6 flex flex-col gap-6">
         <TeamInfoForm team={team} />

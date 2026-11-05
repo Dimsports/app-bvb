@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/auth/guard";
 import { getBenevolesDirectory } from "@/lib/benevoles/queries";
+import { PageHeader } from "@/components/page-header";
 
 export default async function AdminBenevolesPage() {
   await requireRole("admin");
@@ -7,7 +8,7 @@ export default async function AdminBenevolesPage() {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <h1 className="font-title text-2xl text-anthracite">Bénévoles</h1>
+      <PageHeader title="Bénévoles" backHref="/accueil" />
       <p className="mt-1 text-sm text-anthracite/60">
         Annuaire, contact et missions effectuées, toutes équipes.
       </p>

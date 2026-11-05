@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireTeamStaff } from "@/lib/auth/guard";
 import { getMatchDetail, getConvocationsForMatch, getMissionsForMatch } from "@/lib/matches/queries";
 import { teamLabel } from "@/lib/teams/constants";
+import { PageHeader } from "@/components/page-header";
 import { ConvocationsSection } from "./convocations-section";
 import { MissionsSection } from "./missions-section";
 import { ResultSection } from "./result-section";
@@ -31,10 +32,11 @@ export default async function MatchDetailPage({
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <p className="text-sm text-anthracite/60">{match.team ? teamLabel(match.team) : ""}</p>
-      <h1 className="font-title text-2xl text-anthracite">
-        {match.domicile ? "Contre" : "À l'extérieur contre"} {match.adversaire}
-      </h1>
+      <PageHeader
+        title={`${match.domicile ? "Contre" : "À l'extérieur contre"} ${match.adversaire}`}
+        backHref="/matchs"
+        subtitle={match.team ? teamLabel(match.team) : null}
+      />
 
       <section className="mt-6 rounded-2xl bg-card p-6 shadow-sm">
         <p className="capitalize text-anthracite">
