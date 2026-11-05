@@ -44,6 +44,29 @@ Une personne peut cumuler plusieurs rôles. Pour les U9–U13, le compte joueur 
 6. Après 5 codes faux : blocage 15 minutes. L'admin réinitialise un code en un clic.
 7. Toutes les lectures et écritures passent par le serveur (server actions / route handlers) qui vérifie la session et le rôle. La clé `service_role` Supabase reste côté serveur uniquement. RLS activée sur toutes les tables (aucun accès anonyme direct).
 
+## Administration (obligatoire, fait partie du lot 1)
+
+### Premier compte admin
+- Page `/installation` accessible uniquement tant qu'aucun admin n'existe en base.
+- Elle exige un jeton secret lu dans la variable d'environnement `SETUP_TOKEN` (définie dans Vercel), puis demande prénom, nom et code à 6 chiffres.
+- Dès qu'un admin existe, `/installation` renvoie 404 définitivement.
+- Un admin peut nommer d'autres admins ; impossible de retirer le rôle admin au dernier admin.
+
+### Espace Administration
+Entrée « Administration » visible uniquement pour le rôle admin : dans « Plus » sur téléphone, dans la barre latérale sur ordinateur. Pages :
+
+1. **Membres** : liste avec recherche et filtres (rôle, équipe, catégorie) ; créer, modifier, désactiver un membre ; rôles multiples par case à cocher ; rattachement aux équipes (joueur, entraîneur, coach) ; case « compte tenu par un parent ».
+2. **Codes d'accès** : génération automatique à la création, réinitialisation en un clic, déblocage d'un compte bloqué. Le nouveau code s'affiche une seule fois. Fiche d'accès imprimable par membre ou par équipe (nom, code, QR code vers l'app).
+3. **Import des licenciés** : import d'un fichier CSV/Excel (export FFBB) avec aperçu avant validation, détection des doublons, création des comptes et des codes en lot.
+4. **Équipes** : créer, modifier, archiver ; catégorie, saison, gymnase, créneaux, staff.
+5. **Fonctionnalités** : activer ou désactiver chaque module (Séances, Mode terrain, Matchs, Saison, Joueurs, Questionnaires, Bénévoles, Projet club, Communication) pour tout le club, et choisir quels rôles y ont accès. Un module désactivé disparaît de la navigation et ses routes sont refusées côté serveur.
+6. **Réglages du club** : nom, logo, saison en cours (dates), gymnases, catégories d'âge.
+7. **Journal** : dernières actions sensibles (création de membre, changement de rôle, réinitialisation de code, import).
+
+### Règles
+- Chaque action d'administration est vérifiée côté serveur (rôle admin), jamais seulement en masquant un bouton.
+- Les permissions par module sont stockées en base (table `club_features`) et lues par le middleware et par la navigation.
+
 ## Design
 
 Identité tirée du logo (fourni : `public/logo-bvb.jpeg`).
@@ -73,6 +96,72 @@ Identité tirée du logo (fourni : `public/logo-bvb.jpeg`).
     - Appel rapide : une touche par joueur.
 5. **Matchs** : import du calendrier depuis l'export FFBB (fichier chargé par l'admin), convocations, confirmation des joueurs, missions bénévoles du match, saisie du résultat et note privée du coach.
 6. **Accueil** par rôle : séance du jour, séances de la semaine à préparer, prochain match, actions en attente.
+
+## Retours du 5 novembre 2026 (PRIORITAIRES, à faire avant le reste)
+
+### 1. Bouton retour
+- Sur toutes les pages sauf les 5 onglets principaux : bouton retour (flèche, 44 px) en haut à gauche de l'en-tête, comme dans les maquettes `Seance.html` et `Match.html`.
+- Il revient à la page précédente ; si l'utilisateur est arrivé directement par un lien, il revient à la page parente logique (ex. fiche joueur → équipe → liste des équipes).
+- Titre de la page à côté du bouton, pour toujours savoir où l'on est.
+
+### 2. Création de comptes par fichier
+- Dans Administration › Import des licenciés : bouton « Importer un fichier » (CSV, XLSX), et bouton « Télécharger le modèle » qui fournit un fichier vide avec les bonnes colonnes.
+- Colonnes du modèle : Nom, Prénom, Date de naissance, Rôle(s), Équipe, Compte tenu par un parent (oui/non), Téléphone parent (facultatif).
+- Accepter aussi l'export FFBB : faire correspondre ses colonnes automatiquement, et laisser l'admin corriger la correspondance.
+- Étapes : choix du fichier → aperçu en tableau avec erreurs surlignées (équipe inconnue, doublon, date invalide) → validation → création en lot → fiche des codes imprimable pour toutes les personnes créées.
+- Si la colonne Équipe est vide, proposer l'équipe selon la catégorie d'âge déduite de la date de naissance.
+
+### 3. Modifier les fonctionnalités d'un membre
+- Sur la fiche d'un membre (Administration › Membres) : section « Accès » listant chaque module avec un interrupteur.
+- Par défaut, les accès viennent du rôle ; l'admin peut ajouter ou retirer un module pour cette personne seulement (ex. donner « Bibliothèque » à un bénévole, retirer « Matchs » à un coach).
+- Stockage : table `member_feature_overrides` (membre, module, autorisé oui/non). Accès final = module activé pour le club ET (droit du rôle, modifié par l'exception individuelle). Vérifié côté serveur.
+- Afficher clairement « par défaut (rôle) » ou « personnalisé » à côté de chaque interrupteur, et un bouton « Revenir aux accès du rôle ».
+
+### 4. BVB Book et Compétences (nouveau module, fait partie du lot 1)
+**BVB Book** = le référentiel de formation du club : pour chaque catégorie (U9, U11, U13, U15, U17, U18), la liste des compétences attendues, regroupées par domaine. Il reprend les « Projets de jeu » par catégorie.
+- Domaines : Fondamentaux offensifs, Fondamentaux défensifs, Jeu collectif, Physique et motricité, Mental et comportement.
+- Chaque compétence : intitulé, domaine, catégorie(s), description courte, critères de réussite observables, média facultatif (photo, vidéo ou lien), exercices de la bibliothèque associés.
+- Admin et entraîneurs modifient le BVB Book ; les coachs le consultent.
+
+**Évaluation des joueurs**
+- Depuis la fiche équipe : « Évaluer » → choisir un ou plusieurs joueurs → la grille des compétences de leur catégorie s'affiche.
+- Échelle à 4 niveaux avec couleurs : Non acquis, En cours, Acquis, Maîtrisé. Commentaire facultatif par compétence et commentaire général.
+- Évaluation par période (ex. septembre, décembre, mars, juin) pour voir la progression ; chaque évaluation est datée et signée par son auteur.
+- Saisie rapide sur téléphone : un joueur par écran, une touche par niveau, passage au joueur suivant.
+- Fiche de progression du joueur : niveau par domaine, évolution entre deux périodes, points forts et axes de travail.
+- Vue équipe : tableau joueurs × compétences pour repérer ce qu'il faut travailler ; bouton « Trouver des exercices » qui filtre la bibliothèque sur la compétence choisie.
+
+**Confidentialité (non négociable)**
+- Évaluations visibles uniquement par le staff : entraîneurs et coachs de l'équipe du joueur, et admin.
+- Jamais visibles par le joueur ni par le parent qui tient son compte : ni page, ni lien, ni donnée renvoyée par l'API. Vérifié côté serveur et par RLS, et testé.
+- Tables : `competences`, `competence_domains`, `evaluations`, `evaluation_items`.
+
+### 5. Équipe choisie dès la création d'un membre
+- Dans le formulaire de création d'un membre : champ « Équipe(s) » avec liste déroulante de recherche.
+- Dès que la date de naissance est saisie, l'équipe de la catégorie correspondante est proposée en premier.
+- Pour un entraîneur ou un coach : sélection de plusieurs équipes possible, avec son rôle dans chacune.
+- La fiche équipe montre immédiatement le nouveau membre.
+
+### 6. Thématiques de la bibliothèque adaptées au basket
+Remplacer les thématiques génériques par ce référentiel (modifiable par l'admin dans Réglages) :
+
+| Famille | Thématiques |
+| --- | --- |
+| Fondamentaux offensifs | Dribble et maniement, Passe et réception, Tir en course / finition, Tir extérieur, Lancer franc, Jeu de pieds et appuis, Arrêts et pivots, 1c1 offensif, Jeu dos au panier, Rebond offensif |
+| Fondamentaux défensifs | Défense sur porteur, Défense sur non-porteur, Aide et rotation, Défense poste bas, Rebond défensif et box-out, Contestation de tir |
+| Jeu collectif | Jeu sans ballon et démarquage, Spacing, Passe et va / passer-couper, Écrans directs (pick and roll), Écrans indirects, Surnombre (2c1, 3c2), Transition offensive / contre-attaque, Repli défensif, Attaque de zone, Défense de zone, Presse et attaque de presse, Situations spéciales (remise en jeu, fin de match) |
+| Physique et motricité | Coordination, Vitesse et réactivité, Changements de direction, Gainage et prévention, Endurance spécifique |
+| Mental et comportement | Communication, Concentration, Leadership, Fair-play |
+
+- Filtres supplémentaires sur chaque exercice : catégorie d'âge, partie de séance, nombre de joueurs, espace (demi-terrain, tout terrain, atelier), matériel, intensité, opposition (sans, partielle, totale).
+- Un exercice peut avoir plusieurs thématiques et être relié à des compétences du BVB Book.
+
+### 7. Bibliothèque partagée automatiquement
+- Quand un entraîneur ou un coach crée un nouvel exercice, y compris directement dans une séance, il est enregistré dans la bibliothèque du club et devient visible par tous les entraîneurs et coachs.
+- L'exercice indique son auteur et sa date. Badge « Nouveau » pendant 14 jours.
+- Seuls l'auteur et l'admin modifient ou suppriment l'original. Les autres font « Dupliquer et adapter », qui crée leur propre version, aussi partagée.
+- Modifier un exercice dans une séance (durée, consignes du jour) ne modifie pas l'exercice de la bibliothèque.
+- Supprimer un exercice de la bibliothèque ne le retire pas des séances déjà créées.
 
 ## Lots suivants
 
