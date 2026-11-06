@@ -19,6 +19,7 @@ const ACTION_LABELS: Record<string, string> = {
   thematique_ajoutee: "Thématique ajoutée",
   thematique_renommee: "Thématique renommée",
   thematique_supprimee: "Thématique supprimée",
+  import_licencies: "Import de licenciés",
   installation: "Installation",
 };
 

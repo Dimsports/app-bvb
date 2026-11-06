@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/page-header";
 
 const SECTIONS = [
   { href: "/admin/membres", label: "Membres", description: "Créer, modifier, rôles et codes." },
+  { href: "/administration/import-licencies", label: "Import des licenciés", description: "Import CSV/Excel, création en lot." },
   { href: "/admin/equipes", label: "Équipes", description: "Catégories, staff, créneaux." },
   { href: "/admin/matchs", label: "Matchs", description: "Import du calendrier FFBB." },
   { href: "/admin/benevoles", label: "Bénévoles", description: "Annuaire et missions." },
