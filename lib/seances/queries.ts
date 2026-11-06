@@ -14,7 +14,7 @@ export type SeanceSummary = {
 };
 
 export type SeanceBlocExercice = {
-  id: string;
+  id: string | null;
   titre: string;
   partie: string;
   consignes: string | null;
@@ -99,18 +99,24 @@ export async function getSeanceDetail(id: string): Promise<SeanceDetail | null> 
 
   const { data: blocRows } = await supabase
     .from("seance_blocs")
-    .select("id, ordre, duree_minutes, exercises(id, titre, partie, consignes, media_type, media_url, media_platform)")
+    .select("id, ordre, duree_minutes, exercice_id, titre, partie, consignes, media_type, media_url, media_platform")
     .eq("seance_id", id)
     .order("ordre", { ascending: true });
 
-  const blocs: SeanceBloc[] = (blocRows ?? [])
-    .map((row) => ({
-      id: row.id,
-      ordre: row.ordre,
-      duree_minutes: row.duree_minutes,
-      exercice: row.exercises as unknown as SeanceBloc["exercice"],
-    }))
-    .filter((b) => Boolean(b.exercice));
+  const blocs: SeanceBloc[] = (blocRows ?? []).map((row) => ({
+    id: row.id,
+    ordre: row.ordre,
+    duree_minutes: row.duree_minutes,
+    exercice: {
+      id: row.exercice_id,
+      titre: row.titre ?? "",
+      partie: row.partie ?? "",
+      consignes: row.consignes,
+      media_type: row.media_type,
+      media_url: row.media_url,
+      media_platform: row.media_platform,
+    },
+  }));
 
   return {
     id: seance.id,

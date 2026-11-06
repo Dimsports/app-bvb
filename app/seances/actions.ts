@@ -125,11 +125,17 @@ export async function addBloc(
 
   const [{ data: existing }, { data: exercise }] = await Promise.all([
     supabase.from("seance_blocs").select("ordre").eq("seance_id", seanceId).order("ordre", { ascending: false }).limit(1),
-    supabase.from("exercises").select("duree_defaut_minutes").eq("id", exerciceId).maybeSingle(),
+    supabase
+      .from("exercises")
+      .select("titre, partie, consignes, duree_defaut_minutes, media_type, media_url, media_platform")
+      .eq("id", exerciceId)
+      .maybeSingle(),
   ]);
 
+  if (!exercise) return { ok: false, error: "Exercice introuvable." };
+
   const nextOrdre = (existing?.[0]?.ordre ?? 0) + 1;
-  const duree = exercise?.duree_defaut_minutes ?? 10;
+  const duree = exercise.duree_defaut_minutes ?? 10;
 
   const { data, error } = await supabase
     .from("seance_blocs")
@@ -138,8 +144,14 @@ export async function addBloc(
       exercice_id: exerciceId,
       ordre: nextOrdre,
       duree_minutes: duree,
+      titre: exercise.titre,
+      partie: exercise.partie,
+      consignes: exercise.consignes,
+      media_type: exercise.media_type,
+      media_url: exercise.media_url,
+      media_platform: exercise.media_platform,
     })
-    .select("id, ordre, duree_minutes, exercises(id, titre, partie)")
+    .select("id, ordre, duree_minutes, titre, partie, consignes, media_type, media_url, media_platform")
     .single();
 
   if (error || !data) {
@@ -154,7 +166,15 @@ export async function addBloc(
       id: data.id,
       ordre: data.ordre,
       duree_minutes: data.duree_minutes,
-      exercice: data.exercises as unknown as SeanceBloc["exercice"],
+      exercice: {
+        id: exerciceId,
+        titre: data.titre,
+        partie: data.partie,
+        consignes: data.consignes,
+        media_type: data.media_type,
+        media_url: data.media_url,
+        media_platform: data.media_platform,
+      },
     },
   };
 }
@@ -194,6 +214,30 @@ export async function updateBlocDuration(
 
   if (error) {
     console.error("updateBlocDuration error", error);
+    return { ok: false };
+  }
+
+  revalidatePath(`/seances/${seanceId}`);
+  return { ok: true };
+}
+
+export async function updateBlocConsignes(
+  seanceId: string,
+  blocId: string,
+  consignes: string
+): Promise<{ ok: boolean }> {
+  const teamId = await getSeanceTeamId(seanceId);
+  if (!teamId) return { ok: false };
+  await requireTeamEditor(teamId);
+
+  const supabase = getServiceClient();
+  const { error } = await supabase
+    .from("seance_blocs")
+    .update({ consignes: consignes.trim() || null })
+    .eq("id", blocId);
+
+  if (error) {
+    console.error("updateBlocConsignes error", error);
     return { ok: false };
   }
 

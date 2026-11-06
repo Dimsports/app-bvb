@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { requireAnyRole } from "@/lib/auth/guard";
+import type { SessionPayload } from "@/lib/auth/session";
 import { getServiceClient } from "@/lib/supabase/server";
 import { PARTIES, ESPACES, INTENSITES, OPPOSITIONS } from "@/lib/exercises/constants";
 import { detectPlatform } from "@/lib/exercises/media";
@@ -10,7 +11,28 @@ import { revalidatePath } from "next/cache";
 const STORAGE_BUCKET = "exercise-media";
 
 async function requireLibraryEditor() {
-  return requireAnyRole(["entraineur"]);
+  return requireAnyRole(["entraineur", "coach"]);
+}
+
+/**
+ * Seuls l'auteur d'un exercice et l'admin peuvent modifier/supprimer
+ * l'original. Les autres passent par duplicateExercise.
+ */
+async function assertOwnerOrAdmin(exerciseId: string, session: SessionPayload): Promise<string | null> {
+  if (session.roles.includes("admin")) return null;
+
+  const supabase = getServiceClient();
+  const { data } = await supabase
+    .from("exercises")
+    .select("author_id")
+    .eq("id", exerciseId)
+    .maybeSingle();
+
+  if (!data) return "Exercice introuvable.";
+  if (data.author_id !== session.memberId) {
+    return "Seuls l'auteur et l'admin peuvent modifier cet exercice.";
+  }
+  return null;
 }
 
 const exerciseSchema = z.object({
@@ -56,7 +78,7 @@ async function syncExerciseThemes(exerciseId: string, themeIds: string[]) {
 export async function createExercise(
   input: ExerciseInput
 ): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
-  await requireLibraryEditor();
+  const session = await requireLibraryEditor();
 
   const parsed = exerciseSchema.safeParse(input);
   if (!parsed.success) {
@@ -78,6 +100,7 @@ export async function createExercise(
       materiel: parsed.data.materiel,
       intensite: parsed.data.intensite || null,
       opposition: parsed.data.opposition || null,
+      author_id: session.memberId,
     })
     .select("id")
     .single();
@@ -97,7 +120,9 @@ export async function updateExercise(
   id: string,
   input: ExerciseInput
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  await requireLibraryEditor();
+  const session = await requireLibraryEditor();
+  const ownerError = await assertOwnerOrAdmin(id, session);
+  if (ownerError) return { ok: false, error: ownerError };
 
   const parsed = exerciseSchema.safeParse(input);
   if (!parsed.success) {
@@ -135,7 +160,8 @@ export async function updateExercise(
 }
 
 export async function deleteExercise(id: string): Promise<{ ok: boolean }> {
-  await requireLibraryEditor();
+  const session = await requireLibraryEditor();
+  if (await assertOwnerOrAdmin(id, session)) return { ok: false };
 
   const supabase = getServiceClient();
   await removeStoredMedia(id);
@@ -156,7 +182,9 @@ export async function setExternalLink(
   id: string,
   url: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  await requireLibraryEditor();
+  const session = await requireLibraryEditor();
+  const ownerError = await assertOwnerOrAdmin(id, session);
+  if (ownerError) return { ok: false, error: ownerError };
 
   const parsed = linkSchema.safeParse(url);
   if (!parsed.success) {
@@ -184,7 +212,9 @@ export async function uploadMedia(
   id: string,
   formData: FormData
 ): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
-  await requireLibraryEditor();
+  const session = await requireLibraryEditor();
+  const ownerError = await assertOwnerOrAdmin(id, session);
+  if (ownerError) return { ok: false, error: ownerError };
 
   const file = formData.get("file");
   const kind = formData.get("kind");
@@ -227,7 +257,8 @@ export async function uploadMedia(
 }
 
 export async function removeMedia(id: string): Promise<{ ok: boolean }> {
-  await requireLibraryEditor();
+  const session = await requireLibraryEditor();
+  if (await assertOwnerOrAdmin(id, session)) return { ok: false };
 
   const supabase = getServiceClient();
   await removeStoredMedia(id);
@@ -259,6 +290,47 @@ async function removeStoredMedia(exerciseId: string) {
   if (path) {
     await supabase.storage.from(STORAGE_BUCKET).remove([path]);
   }
+}
+
+export async function duplicateExercise(
+  id: string
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const session = await requireAnyRole(["entraineur", "coach"]);
+
+  const supabase = getServiceClient();
+  const [{ data: original }, { data: themeLinks }] = await Promise.all([
+    supabase
+      .from("exercises")
+      .select(
+        "titre, partie, duree_defaut_minutes, consignes, categories, nb_joueurs_min, nb_joueurs_max, espace, materiel, intensite, opposition"
+      )
+      .eq("id", id)
+      .maybeSingle(),
+    supabase.from("exercise_themes").select("theme_id").eq("exercise_id", id),
+  ]);
+
+  if (!original) return { ok: false, error: "Exercice introuvable." };
+
+  const { data, error } = await supabase
+    .from("exercises")
+    .insert({
+      ...original,
+      titre: `${original.titre} (copie)`,
+      author_id: session.memberId,
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    console.error("duplicateExercise error", error);
+    return { ok: false, error: "Erreur lors de la duplication." };
+  }
+
+  const themeIds = (themeLinks ?? []).map((t) => t.theme_id as string);
+  await syncExerciseThemes(data.id, themeIds);
+
+  revalidatePath("/bibliotheque");
+  return { ok: true, id: data.id };
 }
 
 export async function searchMateriel(query: string): Promise<string[]> {

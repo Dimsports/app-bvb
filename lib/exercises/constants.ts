@@ -22,6 +22,12 @@ export function isPartie(value: string): value is Partie {
   return (PARTIES as readonly string[]).includes(value);
 }
 
+const NOUVEAU_BADGE_DURATION_MS = 14 * 24 * 60 * 60 * 1000;
+
+export function isRecentExercise(createdAt: string): boolean {
+  return Date.now() - new Date(createdAt).getTime() < NOUVEAU_BADGE_DURATION_MS;
+}
+
 export const ESPACES = ["demi_terrain", "tout_terrain", "atelier"] as const;
 export type Espace = (typeof ESPACES)[number];
 

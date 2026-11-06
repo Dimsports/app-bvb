@@ -18,8 +18,9 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { PARTIE_LABELS, PARTIE_COLOR_VAR, isPartie } from "@/lib/exercises/constants";
 import type { SeanceBloc } from "@/lib/seances/queries";
-import { removeBloc, updateBlocDuration, reorderBlocs } from "../actions";
+import { removeBloc, updateBlocDuration, updateBlocConsignes, reorderBlocs } from "../actions";
 import { AddExercisePanel } from "./add-exercise-panel";
+import { QuickCreateExercise } from "./quick-create-exercise";
 
 function partieColor(partie: string) {
   return isPartie(partie) ? PARTIE_COLOR_VAR[partie] : "var(--color-dot-empty)";
@@ -49,16 +50,20 @@ function BlocRow({
   canEdit,
   onRemove,
   onDurationChange,
+  onConsignesChange,
 }: {
   bloc: SeanceBloc;
   canEdit: boolean;
   onRemove: (id: string) => void;
   onDurationChange: (id: string, minutes: number) => void;
+  onConsignesChange: (id: string, consignes: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: bloc.id,
     disabled: !canEdit,
   });
+  const [consignesOpen, setConsignesOpen] = useState(false);
+  const [consignesDraft, setConsignesDraft] = useState(bloc.exercice.consignes ?? "");
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -66,53 +71,79 @@ function BlocRow({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  function saveConsignes() {
+    if (consignesDraft !== (bloc.exercice.consignes ?? "")) {
+      onConsignesChange(bloc.id, consignesDraft);
+    }
+  }
+
   return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className="flex items-center gap-3 rounded-xl bg-card p-3 shadow-sm"
-    >
-      {canEdit && (
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          aria-label="Réordonner"
-          className="flex h-11 w-8 shrink-0 cursor-grab touch-none items-center justify-center text-anthracite/40 active:cursor-grabbing"
-        >
-          ⠿
-        </button>
-      )}
-      <span
-        className="h-3 w-3 shrink-0 rounded-full"
-        style={{ backgroundColor: partieColor(bloc.exercice.partie) }}
-      />
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-anthracite">{bloc.exercice.titre}</p>
-        <p className="text-xs text-anthracite/50">
-          {isPartie(bloc.exercice.partie) ? PARTIE_LABELS[bloc.exercice.partie] : bloc.exercice.partie}
-        </p>
-      </div>
-      {canEdit ? (
-        <>
-          <input
-            type="number"
-            min={1}
-            max={180}
-            value={bloc.duree_minutes}
-            onChange={(e) => onDurationChange(bloc.id, Number(e.target.value))}
-            className="h-10 w-16 rounded-lg border border-anthracite/20 px-2 text-center text-sm"
-          />
+    <li ref={setNodeRef} style={style} className="rounded-xl bg-card p-3 shadow-sm">
+      <div className="flex items-center gap-3">
+        {canEdit && (
           <button
             type="button"
-            onClick={() => onRemove(bloc.id)}
-            className="text-sm font-medium text-red-700"
+            {...attributes}
+            {...listeners}
+            aria-label="Réordonner"
+            className="flex h-11 w-8 shrink-0 cursor-grab touch-none items-center justify-center text-anthracite/40 active:cursor-grabbing"
           >
-            Retirer
+            ⠿
           </button>
-        </>
-      ) : (
-        <span className="text-sm text-anthracite/60">{bloc.duree_minutes} min</span>
+        )}
+        <span
+          className="h-3 w-3 shrink-0 rounded-full"
+          style={{ backgroundColor: partieColor(bloc.exercice.partie) }}
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium text-anthracite">{bloc.exercice.titre}</p>
+          <p className="text-xs text-anthracite/50">
+            {isPartie(bloc.exercice.partie) ? PARTIE_LABELS[bloc.exercice.partie] : bloc.exercice.partie}
+          </p>
+        </div>
+        {canEdit ? (
+          <>
+            <input
+              type="number"
+              min={1}
+              max={180}
+              value={bloc.duree_minutes}
+              onChange={(e) => onDurationChange(bloc.id, Number(e.target.value))}
+              className="h-10 w-16 rounded-lg border border-anthracite/20 px-2 text-center text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => onRemove(bloc.id)}
+              className="text-sm font-medium text-red-700"
+            >
+              Retirer
+            </button>
+          </>
+        ) : (
+          <span className="text-sm text-anthracite/60">{bloc.duree_minutes} min</span>
+        )}
+      </div>
+
+      {canEdit && (
+        <div className="mt-2 pl-11">
+          <button
+            type="button"
+            onClick={() => setConsignesOpen((v) => !v)}
+            className="text-xs font-medium text-turquoise-contrast"
+          >
+            {consignesOpen ? "Masquer les consignes du jour" : "Consignes du jour"}
+          </button>
+          {consignesOpen && (
+            <textarea
+              value={consignesDraft}
+              onChange={(e) => setConsignesDraft(e.target.value)}
+              onBlur={saveConsignes}
+              rows={2}
+              placeholder="Précision pour cette séance uniquement (ne modifie pas la bibliothèque)"
+              className="mt-2 w-full rounded-lg border border-anthracite/20 px-3 py-2 text-sm"
+            />
+          )}
+        </div>
       )}
     </li>
   );
@@ -167,6 +198,15 @@ export function BlocEditor({
     }
   }
 
+  function handleConsignesChange(blocId: string, consignes: string) {
+    setBlocs((prev) =>
+      prev.map((b) => (b.id === blocId ? { ...b, exercice: { ...b.exercice, consignes } } : b))
+    );
+    startTransition(() => {
+      updateBlocConsignes(seanceId, blocId, consignes);
+    });
+  }
+
   return (
     <section className="rounded-2xl bg-card p-6 shadow-sm">
       <div className="flex items-baseline justify-between">
@@ -188,6 +228,7 @@ export function BlocEditor({
                 canEdit={canEdit}
                 onRemove={handleRemove}
                 onDurationChange={handleDurationChange}
+                onConsignesChange={handleConsignesChange}
               />
             ))}
           </ul>
@@ -206,6 +247,14 @@ export function BlocEditor({
           />
         </div>
       )}
+
+      <div className="mt-3">
+        <QuickCreateExercise
+          seanceId={seanceId}
+          canAttach={canEdit}
+          onAdded={(bloc) => setBlocs((prev) => [...prev, bloc])}
+        />
+      </div>
     </section>
   );
 }

@@ -13,10 +13,14 @@ import {
 } from "@/lib/exercises/constants";
 import { getThemeFamilies } from "@/lib/themes/queries";
 import { getClubSettings } from "@/lib/club/settings";
+import { isRecentExercise } from "@/lib/exercises/constants";
 import { PageHeader } from "@/components/page-header";
 import { ExerciseForm } from "../exercise-form";
 import { MediaManager } from "./media-manager";
 import { DeleteButton } from "./delete-button";
+import { DuplicateButton } from "./duplicate-button";
+
+const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
 export default async function ExerciceDetailPage({
   params,
@@ -28,7 +32,8 @@ export default async function ExerciceDetailPage({
   const exercise = await getExercise(id);
   if (!exercise) notFound();
 
-  const canEdit = session.roles.includes("admin") || session.roles.includes("entraineur");
+  const isAuthor = exercise.author_id === session.memberId;
+  const canEdit = session.roles.includes("admin") || isAuthor;
   const [themeFamilies, clubSettings] = canEdit
     ? await Promise.all([getThemeFamilies(), getClubSettings()])
     : [[], null];
@@ -36,6 +41,18 @@ export default async function ExerciceDetailPage({
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
       <PageHeader title={exercise.titre} backHref="/bibliotheque" />
+
+      <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-anthracite/60">
+        {isRecentExercise(exercise.created_at) && (
+          <span className="rounded-full bg-turquoise/15 px-2 py-0.5 text-xs font-medium text-turquoise-contrast">
+            Nouveau
+          </span>
+        )}
+        <span>
+          {exercise.author ? `Créé par ${exercise.author.prenom} ${exercise.author.nom}` : "Exercice du club"} le{" "}
+          {DATE_FORMAT.format(new Date(exercise.created_at))}
+        </span>
+      </div>
 
       <div className="mt-6 flex flex-col gap-6">
         {canEdit ? (
@@ -100,6 +117,8 @@ export default async function ExerciceDetailPage({
             )}
           </section>
         )}
+
+        {!canEdit && <DuplicateButton exerciseId={exercise.id} />}
 
         <MediaManager
           exerciseId={exercise.id}

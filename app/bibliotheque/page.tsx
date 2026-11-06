@@ -3,7 +3,7 @@ import { requireAnyRole } from "@/lib/auth/guard";
 import { getExercises } from "@/lib/exercises/queries";
 import { getThemeFamilies } from "@/lib/themes/queries";
 import { getClubSettings } from "@/lib/club/settings";
-import { PARTIE_LABELS, PARTIE_COLOR_VAR, isPartie } from "@/lib/exercises/constants";
+import { PARTIE_LABELS, PARTIE_COLOR_VAR, isPartie, isRecentExercise } from "@/lib/exercises/constants";
 import { PageHeader } from "@/components/page-header";
 import { Filters } from "./filters";
 
@@ -37,7 +37,10 @@ export default async function BibliothequePage({
     getThemeFamilies(),
     getClubSettings(),
   ]);
-  const canEdit = session.roles.includes("admin") || session.roles.includes("entraineur");
+  const canCreate =
+    session.roles.includes("admin") ||
+    session.roles.includes("entraineur") ||
+    session.roles.includes("coach");
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
@@ -47,7 +50,7 @@ export default async function BibliothequePage({
           backHref="/accueil"
           subtitle={`${exercises.length} exercice${exercises.length > 1 ? "s" : ""}`}
         />
-        {canEdit && (
+        {canCreate && (
           <Link
             href="/bibliotheque/nouveau"
             className="h-11 shrink-0 rounded-lg bg-anthracite px-4 text-sm font-medium leading-[44px] text-white"
@@ -75,7 +78,14 @@ export default async function BibliothequePage({
                 }}
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-anthracite">{ex.titre}</p>
+                <p className="flex items-center gap-2 truncate font-medium text-anthracite">
+                  <span className="truncate">{ex.titre}</span>
+                  {isRecentExercise(ex.created_at) && (
+                    <span className="shrink-0 rounded-full bg-turquoise/15 px-2 py-0.5 text-xs font-medium text-turquoise-contrast">
+                      Nouveau
+                    </span>
+                  )}
+                </p>
                 <p className="text-sm text-anthracite/60">
                   {isPartie(ex.partie) ? PARTIE_LABELS[ex.partie] : ex.partie}
                   {ex.duree_defaut_minutes ? ` · ${ex.duree_defaut_minutes} min` : ""}

@@ -8,6 +8,12 @@ export type ExerciseTheme = {
   family_nom: string;
 };
 
+export type ExerciseAuthor = {
+  id: string;
+  prenom: string;
+  nom: string;
+};
+
 export type Exercise = {
   id: string;
   titre: string;
@@ -24,26 +30,32 @@ export type Exercise = {
   media_type: string | null;
   media_url: string | null;
   media_platform: string | null;
+  author_id: string | null;
+  created_at: string;
   themes: ExerciseTheme[];
+  author: ExerciseAuthor | null;
 };
 
 const SELECT = `
   id, titre, partie, duree_defaut_minutes, consignes, categories,
   nb_joueurs_min, nb_joueurs_max, espace, materiel, intensite, opposition,
-  media_type, media_url, media_platform,
-  exercise_themes(themes(id, nom, family_id, theme_families(nom)))
+  media_type, media_url, media_platform, author_id, created_at,
+  exercise_themes(themes(id, nom, family_id, theme_families(nom))),
+  members(id, prenom, nom)
 `;
 
-type ExerciseRow = Omit<Exercise, "themes"> & {
+type ExerciseRow = Omit<Exercise, "themes" | "author"> & {
   exercise_themes: {
     themes: { id: string; nom: string; family_id: string; theme_families: { nom: string } | null } | null;
   }[];
+  members: ExerciseAuthor | null;
 };
 
 function mapRow(row: ExerciseRow): Exercise {
-  const { exercise_themes, ...rest } = row;
+  const { exercise_themes, members, ...rest } = row;
   return {
     ...rest,
+    author: members,
     themes: exercise_themes
       .map((et) => et.themes)
       .filter((t): t is NonNullable<typeof t> => Boolean(t))
