@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { ROLES, ROLE_LABELS, isRole, type Role } from "@/lib/members/roles";
 import { createMember, resetMemberCode, deleteMember } from "./actions";
 
@@ -193,6 +194,12 @@ function MemberCard({
         </div>
       </div>
       <div className="flex shrink-0 flex-wrap gap-2">
+        <Link
+          href={`/admin/membres/${member.id}`}
+          className="flex h-10 items-center rounded-lg border border-anthracite/20 px-3 text-sm font-medium text-anthracite"
+        >
+          Gérer les accès
+        </Link>
         <button
           type="button"
           disabled={isPending}

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAnyRole, requireFeature } from "@/lib/auth/guard";
 import { getSeancesForMember } from "@/lib/seances/queries";
 import { getRelevantVacance } from "@/lib/season/vacances";
-import { isModuleAllowedForRoles } from "@/lib/features/queries";
+import { isModuleAllowedForMember } from "@/lib/features/queries";
 import { teamLabel } from "@/lib/teams/constants";
 
 const WEEKDAY_FORMAT = new Intl.DateTimeFormat("fr-FR", {
@@ -23,7 +23,7 @@ export default async function SeancesPage() {
   const isAdmin = session.roles.includes("admin");
   const seances = await getSeancesForMember(session.memberId, isAdmin);
   const canCreate = isAdmin || session.roles.includes("entraineur");
-  const showVacance = await isModuleAllowedForRoles("saison", session.roles);
+  const showVacance = await isModuleAllowedForMember("saison", session.memberId, session.roles);
   const vacance = showVacance ? getRelevantVacance(todayISO()) : null;
 
   return (

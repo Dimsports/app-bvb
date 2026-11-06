@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requireAnyRole } from "@/lib/auth/guard";
 import { getTeamDetail, isTeamStaff } from "@/lib/teams/queries";
 import { getCyclesForTeam } from "@/lib/cycles/queries";
-import { isModuleAllowedForRoles } from "@/lib/features/queries";
+import { isModuleAllowedForMember } from "@/lib/features/queries";
 import { teamLabel, jourLabel } from "@/lib/teams/constants";
 import { PageHeader } from "@/components/page-header";
 import { CyclesSection } from "./cycles-section";
@@ -25,7 +25,7 @@ export default async function MonEquipeDetailPage({
   if (!team) notFound();
 
   const canEdit = isAdmin || session.roles.includes("entraineur");
-  const showSaison = await isModuleAllowedForRoles("saison", session.roles);
+  const showSaison = await isModuleAllowedForMember("saison", session.memberId, session.roles);
   const cycles = showSaison ? await getCyclesForTeam(id) : [];
 
   return (

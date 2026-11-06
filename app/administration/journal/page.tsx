@@ -15,6 +15,7 @@ const ACTION_LABELS: Record<string, string> = {
   code_reinitialise: "Code réinitialisé",
   fonctionnalite_modifiee: "Fonctionnalité modifiée",
   reglages_modifies: "Réglages modifiés",
+  acces_membre_modifie: "Accès personnalisé modifié",
   installation: "Installation",
 };
 

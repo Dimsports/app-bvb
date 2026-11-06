@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession, type SessionPayload } from "./session";
 import { isTeamStaff } from "@/lib/teams/queries";
 import { isPlayerStaff } from "@/lib/players/queries";
-import { isModuleAllowedForRoles, type Module } from "@/lib/features/queries";
+import { isModuleAllowedForMember, type Module } from "@/lib/features/queries";
 
 export async function requireSession(): Promise<SessionPayload> {
   const session = await getSession();
@@ -79,12 +79,13 @@ export async function requirePlayerEditor(playerId: string): Promise<SessionPayl
 
 /**
  * Module activé pour le club (club_features) ET rôle autorisé pour ce
- * module. L'admin n'est jamais bloqué, pour éviter un verrouillage
- * accidentel depuis l'espace Administration lui-même.
+ * module, sauf accès personnalisé pour ce membre (member_feature_overrides)
+ * qui prend le dessus. L'admin n'est jamais bloqué, pour éviter un
+ * verrouillage accidentel depuis l'espace Administration lui-même.
  */
 export async function requireFeature(module: Module): Promise<SessionPayload> {
   const session = await requireSession();
-  if (!(await isModuleAllowedForRoles(module, session.roles))) {
+  if (!(await isModuleAllowedForMember(module, session.memberId, session.roles))) {
     redirect("/accueil");
   }
   return session;

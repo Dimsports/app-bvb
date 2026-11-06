@@ -6,7 +6,7 @@ import { logoutAction } from "@/lib/auth/actions";
 import { getSeancesForMember } from "@/lib/seances/queries";
 import { getMatchesForMember, getConvocationsForPlayer, getMissionsFeed } from "@/lib/matches/queries";
 import { getTodayEntry } from "@/lib/wellbeing/queries";
-import { isModuleAllowedForRoles } from "@/lib/features/queries";
+import { isModuleAllowedForMember } from "@/lib/features/queries";
 import { teamLabel } from "@/lib/teams/constants";
 import { getServiceClient } from "@/lib/supabase/server";
 import { ConvocationCard } from "./convocation-card";
@@ -48,12 +48,12 @@ export default async function AccueilPage() {
 
   const [canSeances, canMatchs, canQuestionnaires, canBenevoles, canProjetClub, canCommunication] =
     await Promise.all([
-      isModuleAllowedForRoles("seances", session.roles),
-      isModuleAllowedForRoles("matchs", session.roles),
-      isModuleAllowedForRoles("questionnaires", session.roles),
-      isModuleAllowedForRoles("benevoles", session.roles),
-      isModuleAllowedForRoles("projet_club", session.roles),
-      isModuleAllowedForRoles("communication", session.roles),
+      isModuleAllowedForMember("seances", session.memberId, session.roles),
+      isModuleAllowedForMember("matchs", session.memberId, session.roles),
+      isModuleAllowedForMember("questionnaires", session.memberId, session.roles),
+      isModuleAllowedForMember("benevoles", session.memberId, session.roles),
+      isModuleAllowedForMember("projet_club", session.memberId, session.roles),
+      isModuleAllowedForMember("communication", session.memberId, session.roles),
     ]);
 
   const today = isoDate();
