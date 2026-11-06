@@ -22,6 +22,45 @@ export function isPartie(value: string): value is Partie {
   return (PARTIES as readonly string[]).includes(value);
 }
 
+export const ESPACES = ["demi_terrain", "tout_terrain", "atelier"] as const;
+export type Espace = (typeof ESPACES)[number];
+
+export const ESPACE_LABELS: Record<Espace, string> = {
+  demi_terrain: "Demi-terrain",
+  tout_terrain: "Tout terrain",
+  atelier: "Atelier",
+};
+
+export function isEspace(value: string): value is Espace {
+  return (ESPACES as readonly string[]).includes(value);
+}
+
+export const INTENSITES = ["faible", "moyenne", "forte"] as const;
+export type Intensite = (typeof INTENSITES)[number];
+
+export const INTENSITE_LABELS: Record<Intensite, string> = {
+  faible: "Faible",
+  moyenne: "Moyenne",
+  forte: "Forte",
+};
+
+export function isIntensite(value: string): value is Intensite {
+  return (INTENSITES as readonly string[]).includes(value);
+}
+
+export const OPPOSITIONS = ["sans", "partielle", "totale"] as const;
+export type Opposition = (typeof OPPOSITIONS)[number];
+
+export const OPPOSITION_LABELS: Record<Opposition, string> = {
+  sans: "Sans opposition",
+  partielle: "Opposition partielle",
+  totale: "Opposition totale",
+};
+
+export function isOpposition(value: string): value is Opposition {
+  return (OPPOSITIONS as readonly string[]).includes(value);
+}
+
 export const MAX_PHOTO_DIMENSION = 1600;
 export const PHOTO_JPEG_QUALITY = 0.75;
 export const MAX_VIDEO_DURATION_SECONDS = 90;

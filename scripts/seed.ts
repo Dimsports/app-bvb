@@ -39,35 +39,30 @@ const demoExercises = [
     partie: "echauffement",
     dureeDefautMinutes: 8,
     consignes: "Rotation chevilles, genoux, hanches, épaules. Sans ballon.",
-    tags: ["demo", "sans-ballon"],
   },
   {
     titre: "Passes à deux mains",
     partie: "fondamentaux",
     dureeDefautMinutes: 10,
     consignes: "Binômes face à face, passes poitrine puis à terre. Augmenter la distance progressivement.",
-    tags: ["demo", "passe"],
   },
   {
     titre: "1 contre 1 fermeture",
     partie: "theme",
     dureeDefautMinutes: 15,
     consignes: "Le défenseur part en retard d'un pas, doit refermer avant le panier.",
-    tags: ["demo", "defense", "1c1"],
   },
   {
     titre: "Match 3 contre 3",
     partie: "jeu",
     dureeDefautMinutes: 12,
     consignes: "Demi-terrain, un seul panier, change de possession sur interception.",
-    tags: ["demo", "match"],
   },
   {
     titre: "Étirements",
     partie: "retour_calme",
     dureeDefautMinutes: 5,
     consignes: "Étirements statiques, respiration calme.",
-    tags: ["demo"],
   },
 ];
 
@@ -76,7 +71,7 @@ async function main() {
   const { error: deleteExercisesError } = await supabase
     .from("exercises")
     .delete()
-    .contains("tags", ["demo"]);
+    .in("titre", demoExercises.map((ex) => ex.titre));
   if (deleteExercisesError) throw deleteExercisesError;
 
   const { error: deleteTeamsError } = await supabase
@@ -197,7 +192,6 @@ async function main() {
         partie: ex.partie,
         duree_defaut_minutes: ex.dureeDefautMinutes,
         consignes: ex.consignes,
-        tags: ex.tags,
       }))
     )
     .select("id, titre");

@@ -16,6 +16,9 @@ const ACTION_LABELS: Record<string, string> = {
   fonctionnalite_modifiee: "Fonctionnalité modifiée",
   reglages_modifies: "Réglages modifiés",
   acces_membre_modifie: "Accès personnalisé modifié",
+  thematique_ajoutee: "Thématique ajoutée",
+  thematique_renommee: "Thématique renommée",
+  thematique_supprimee: "Thématique supprimée",
   installation: "Installation",
 };
 

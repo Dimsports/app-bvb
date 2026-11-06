@@ -8,6 +8,7 @@ const SECTIONS = [
   { href: "/admin/matchs", label: "Matchs", description: "Import du calendrier FFBB." },
   { href: "/admin/benevoles", label: "Bénévoles", description: "Annuaire et missions." },
   { href: "/administration/fonctionnalites", label: "Fonctionnalités", description: "Activer/désactiver les modules du club." },
+  { href: "/administration/thematiques", label: "Thématiques", description: "Référentiel basket de la bibliothèque d'exercices." },
   { href: "/administration/reglages", label: "Réglages du club", description: "Nom, saison, gymnases, catégories." },
   { href: "/administration/journal", label: "Journal", description: "Dernières actions sensibles." },
 ];

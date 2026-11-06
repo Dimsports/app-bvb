@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { requireAnyRole } from "@/lib/auth/guard";
 import { getServiceClient } from "@/lib/supabase/server";
-import { PARTIES } from "@/lib/exercises/constants";
+import { PARTIES, ESPACES, INTENSITES, OPPOSITIONS } from "@/lib/exercises/constants";
 import { detectPlatform } from "@/lib/exercises/media";
 import { revalidatePath } from "next/cache";
 
@@ -18,7 +18,14 @@ const exerciseSchema = z.object({
   partie: z.enum(PARTIES),
   dureeDefautMinutes: z.coerce.number().int().min(1).max(180).optional().or(z.literal("")),
   consignes: z.string().trim().max(4000).optional(),
-  tags: z.array(z.string().trim().min(1).max(40)).max(20),
+  themeIds: z.array(z.string().uuid()).max(50),
+  categories: z.array(z.string().trim().min(1).max(20)).max(10),
+  nbJoueursMin: z.coerce.number().int().min(1).max(50).optional().or(z.literal("")),
+  nbJoueursMax: z.coerce.number().int().min(1).max(50).optional().or(z.literal("")),
+  espace: z.enum(ESPACES).optional().or(z.literal("")),
+  materiel: z.array(z.string().trim().min(1).max(40)).max(20),
+  intensite: z.enum(INTENSITES).optional().or(z.literal("")),
+  opposition: z.enum(OPPOSITIONS).optional().or(z.literal("")),
 });
 
 export type ExerciseInput = {
@@ -26,8 +33,25 @@ export type ExerciseInput = {
   partie: string;
   dureeDefautMinutes: string;
   consignes: string;
-  tags: string[];
+  themeIds: string[];
+  categories: string[];
+  nbJoueursMin: string;
+  nbJoueursMax: string;
+  espace: string;
+  materiel: string[];
+  intensite: string;
+  opposition: string;
 };
+
+async function syncExerciseThemes(exerciseId: string, themeIds: string[]) {
+  const supabase = getServiceClient();
+  await supabase.from("exercise_themes").delete().eq("exercise_id", exerciseId);
+  if (themeIds.length > 0) {
+    await supabase
+      .from("exercise_themes")
+      .insert(themeIds.map((themeId) => ({ exercise_id: exerciseId, theme_id: themeId })));
+  }
+}
 
 export async function createExercise(
   input: ExerciseInput
@@ -47,7 +71,13 @@ export async function createExercise(
       partie: parsed.data.partie,
       duree_defaut_minutes: parsed.data.dureeDefautMinutes || null,
       consignes: parsed.data.consignes || null,
-      tags: parsed.data.tags,
+      categories: parsed.data.categories,
+      nb_joueurs_min: parsed.data.nbJoueursMin || null,
+      nb_joueurs_max: parsed.data.nbJoueursMax || null,
+      espace: parsed.data.espace || null,
+      materiel: parsed.data.materiel,
+      intensite: parsed.data.intensite || null,
+      opposition: parsed.data.opposition || null,
     })
     .select("id")
     .single();
@@ -56,6 +86,8 @@ export async function createExercise(
     console.error("createExercise error", error);
     return { ok: false, error: "Erreur lors de la création." };
   }
+
+  await syncExerciseThemes(data.id, parsed.data.themeIds);
 
   revalidatePath("/bibliotheque");
   return { ok: true, id: data.id };
@@ -80,7 +112,13 @@ export async function updateExercise(
       partie: parsed.data.partie,
       duree_defaut_minutes: parsed.data.dureeDefautMinutes || null,
       consignes: parsed.data.consignes || null,
-      tags: parsed.data.tags,
+      categories: parsed.data.categories,
+      nb_joueurs_min: parsed.data.nbJoueursMin || null,
+      nb_joueurs_max: parsed.data.nbJoueursMax || null,
+      espace: parsed.data.espace || null,
+      materiel: parsed.data.materiel,
+      intensite: parsed.data.intensite || null,
+      opposition: parsed.data.opposition || null,
     })
     .eq("id", id);
 
@@ -88,6 +126,8 @@ export async function updateExercise(
     console.error("updateExercise error", error);
     return { ok: false, error: "Erreur lors de la mise à jour." };
   }
+
+  await syncExerciseThemes(id, parsed.data.themeIds);
 
   revalidatePath(`/bibliotheque/${id}`);
   revalidatePath("/bibliotheque");
@@ -221,14 +261,14 @@ async function removeStoredMedia(exerciseId: string) {
   }
 }
 
-export async function searchTags(query: string): Promise<string[]> {
+export async function searchMateriel(query: string): Promise<string[]> {
   await requireAnyRole(["entraineur", "coach"]);
   const supabase = getServiceClient();
-  const { data } = await supabase.from("exercises").select("tags");
+  const { data } = await supabase.from("exercises").select("materiel");
   const set = new Set<string>();
   for (const row of data ?? []) {
-    for (const tag of row.tags ?? []) {
-      if (tag.toLowerCase().includes(query.trim().toLowerCase())) set.add(tag);
+    for (const item of row.materiel ?? []) {
+      if (item.toLowerCase().includes(query.trim().toLowerCase())) set.add(item);
     }
   }
   return [...set].sort().slice(0, 10);

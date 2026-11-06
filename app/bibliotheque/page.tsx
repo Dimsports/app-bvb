@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireAnyRole } from "@/lib/auth/guard";
 import { getExercises } from "@/lib/exercises/queries";
+import { getThemeFamilies } from "@/lib/themes/queries";
+import { getClubSettings } from "@/lib/club/settings";
 import { PARTIE_LABELS, PARTIE_COLOR_VAR, isPartie } from "@/lib/exercises/constants";
 import { PageHeader } from "@/components/page-header";
 import { Filters } from "./filters";
@@ -8,11 +10,33 @@ import { Filters } from "./filters";
 export default async function BibliothequePage({
   searchParams,
 }: {
-  searchParams: Promise<{ partie?: string; q?: string }>;
+  searchParams: Promise<{
+    partie?: string;
+    q?: string;
+    theme?: string;
+    categorie?: string;
+    espace?: string;
+    intensite?: string;
+    opposition?: string;
+    joueurs?: string;
+  }>;
 }) {
   const session = await requireAnyRole(["entraineur", "coach"]);
-  const { partie, q } = await searchParams;
-  const exercises = await getExercises({ partie, query: q });
+  const { partie, q, theme, categorie, espace, intensite, opposition, joueurs } = await searchParams;
+  const [exercises, themeFamilies, clubSettings] = await Promise.all([
+    getExercises({
+      partie,
+      query: q,
+      themeId: theme,
+      categorie,
+      espace,
+      intensite,
+      opposition,
+      nbJoueurs: joueurs ? Number(joueurs) : undefined,
+    }),
+    getThemeFamilies(),
+    getClubSettings(),
+  ]);
   const canEdit = session.roles.includes("admin") || session.roles.includes("entraineur");
 
   return (
@@ -34,7 +58,7 @@ export default async function BibliothequePage({
       </div>
 
       <div className="mt-6">
-        <Filters />
+        <Filters themeFamilies={themeFamilies} clubCategories={clubSettings.categories} />
       </div>
 
       <ul className="mt-6 flex flex-col gap-3">
