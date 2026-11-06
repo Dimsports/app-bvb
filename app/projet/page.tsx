@@ -1,9 +1,10 @@
-import { requireRole } from "@/lib/auth/guard";
+import { requireRole, requireFeature } from "@/lib/auth/guard";
 import { getObjectifs, getAllMembersForAssignment } from "@/lib/projet/queries";
 import { PageHeader } from "@/components/page-header";
 import { ObjectifsBoard } from "./objectifs-board";
 
 export default async function ProjetPage() {
+  await requireFeature("projet_club");
   await requireRole("entraineur");
   const [objectifs, members] = await Promise.all([getObjectifs(), getAllMembersForAssignment()]);
 

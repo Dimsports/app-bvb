@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth/guard";
 import { getServiceClient } from "@/lib/supabase/server";
 import { generateCode, hashCode, codeLengthForRoles } from "@/lib/auth/codes";
 import { ROLES } from "@/lib/members/roles";
+import { logAction } from "@/lib/journal/log";
 import { revalidatePath } from "next/cache";
 
 const createMemberSchema = z.object({
@@ -22,7 +23,7 @@ export async function createMember(input: {
   nom: string;
   roles: string[];
 }): Promise<CreateMemberResult> {
-  await requireRole("admin");
+  const session = await requireRole("admin");
 
   const parsed = createMemberSchema.safeParse(input);
   if (!parsed.success) {
@@ -48,6 +49,8 @@ export async function createMember(input: {
     return { ok: false, error: "Erreur lors de la création du membre." };
   }
 
+  await logAction(session.memberId, "membre_cree", `${prenom} ${nom} (${roles.join(", ")})`);
+
   revalidatePath("/admin/membres");
   return { ok: true, code, codeLength };
 }
@@ -57,12 +60,12 @@ export type ResetCodeResult =
   | { ok: false; error: string };
 
 export async function resetMemberCode(memberId: string): Promise<ResetCodeResult> {
-  await requireRole("admin");
+  const session = await requireRole("admin");
 
   const supabase = getServiceClient();
   const { data: member, error: fetchError } = await supabase
     .from("members")
-    .select("id, roles")
+    .select("id, prenom, nom, roles")
     .eq("id", memberId)
     .maybeSingle();
 
@@ -90,19 +93,31 @@ export async function resetMemberCode(memberId: string): Promise<ResetCodeResult
     return { ok: false, error: "Erreur lors de la réinitialisation." };
   }
 
+  await logAction(session.memberId, "code_reinitialise", `${member.prenom} ${member.nom}`);
+
   revalidatePath("/admin/membres");
   return { ok: true, code };
 }
 
 export async function deleteMember(memberId: string): Promise<{ ok: boolean }> {
-  await requireRole("admin");
+  const session = await requireRole("admin");
 
   const supabase = getServiceClient();
+  const { data: member } = await supabase
+    .from("members")
+    .select("prenom, nom")
+    .eq("id", memberId)
+    .maybeSingle();
+
   const { error } = await supabase.from("members").delete().eq("id", memberId);
 
   if (error) {
     console.error("deleteMember error", error);
     return { ok: false };
+  }
+
+  if (member) {
+    await logAction(session.memberId, "membre_supprime", `${member.prenom} ${member.nom}`);
   }
 
   revalidatePath("/admin/membres");

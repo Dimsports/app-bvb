@@ -19,7 +19,7 @@ export default async function AdminMatchsPage() {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <PageHeader title="Matchs" backHref="/accueil" />
+      <PageHeader title="Matchs" backHref="/administration" />
 
       <div className="mt-6 flex flex-col gap-6">
         <ImportForm teams={teams} />

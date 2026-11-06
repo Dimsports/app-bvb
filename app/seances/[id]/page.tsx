@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireTeamStaff } from "@/lib/auth/guard";
+import { requireTeamStaff, requireFeature } from "@/lib/auth/guard";
 import { getSeanceDetail } from "@/lib/seances/queries";
 import Link from "next/link";
 import { teamLabel } from "@/lib/teams/constants";
@@ -18,6 +18,7 @@ export default async function SeanceDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireFeature("seances");
   const { id } = await params;
   const seance = await getSeanceDetail(id);
   if (!seance) notFound();

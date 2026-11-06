@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireTeamStaff } from "@/lib/auth/guard";
+import { requireTeamStaff, requireFeature } from "@/lib/auth/guard";
 import { getSeanceDetail, getSeancePresences } from "@/lib/seances/queries";
 import { getTeamRoster } from "@/lib/teams/queries";
 import { teamLabel } from "@/lib/teams/constants";
@@ -17,6 +17,7 @@ export default async function AppelPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireFeature("seances");
   const { id } = await params;
   const seance = await getSeanceDetail(id);
   if (!seance) notFound();

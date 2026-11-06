@@ -6,6 +6,7 @@ import { logoutAction } from "@/lib/auth/actions";
 import { getSeancesForMember } from "@/lib/seances/queries";
 import { getMatchesForMember, getConvocationsForPlayer, getMissionsFeed } from "@/lib/matches/queries";
 import { getTodayEntry } from "@/lib/wellbeing/queries";
+import { isModuleAllowedForRoles } from "@/lib/features/queries";
 import { teamLabel } from "@/lib/teams/constants";
 import { getServiceClient } from "@/lib/supabase/server";
 import { ConvocationCard } from "./convocation-card";
@@ -44,6 +45,16 @@ export default async function AccueilPage() {
   const playerConvocations = isJoueur ? await getConvocationsForPlayer(session.memberId) : [];
   const missionsFeed = isBenevole ? await getMissionsFeed(session.memberId) : [];
   const wellbeingToday = isJoueur ? await getTodayEntry(session.memberId) : null;
+
+  const [canSeances, canMatchs, canQuestionnaires, canBenevoles, canProjetClub, canCommunication] =
+    await Promise.all([
+      isModuleAllowedForRoles("seances", session.roles),
+      isModuleAllowedForRoles("matchs", session.roles),
+      isModuleAllowedForRoles("questionnaires", session.roles),
+      isModuleAllowedForRoles("benevoles", session.roles),
+      isModuleAllowedForRoles("projet_club", session.roles),
+      isModuleAllowedForRoles("communication", session.roles),
+    ]);
 
   const today = isoDate();
   const nextMatch = matches.find((m) => m.date >= today) ?? null;
@@ -108,6 +119,7 @@ export default async function AccueilPage() {
 
       <div className="mt-6 flex flex-col gap-4">
         {(isEntraineur || isCoach) &&
+          canSeances &&
           (todaySeance ? (
             <section className="rounded-2xl bg-turquoise p-5">
               <div className="flex items-center justify-between">
@@ -139,7 +151,7 @@ export default async function AccueilPage() {
             </section>
           ))}
 
-        {(isEntraineur || isAdmin) && weekSeances.length > 0 && (
+        {(isEntraineur || isAdmin) && canSeances && weekSeances.length > 0 && (
           <section className="rounded-2xl bg-card p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <h2 className="font-medium text-anthracite">Séances de la semaine</h2>
@@ -169,7 +181,7 @@ export default async function AccueilPage() {
           </section>
         )}
 
-        {(isEntraineur || isCoach) && nextMatch && (
+        {(isEntraineur || isCoach) && canMatchs && nextMatch && (
           <Link
             href={`/matchs/${nextMatch.id}`}
             className="flex items-center gap-3 rounded-2xl bg-card p-5 shadow-sm"
@@ -216,7 +228,7 @@ export default async function AccueilPage() {
             </section>
           ))}
 
-        {isJoueur && (
+        {isJoueur && canQuestionnaires && (
           <Link
             href="/bien-etre"
             className="flex items-center justify-between rounded-2xl bg-card p-5 shadow-sm"
@@ -231,7 +243,7 @@ export default async function AccueilPage() {
           </Link>
         )}
 
-        {isBenevole && (
+        {isBenevole && canBenevoles && (
           <Link
             href="/missions"
             className="flex items-center justify-between rounded-2xl bg-card p-5 shadow-sm"
@@ -257,32 +269,12 @@ export default async function AccueilPage() {
 
       <div className="mt-6 flex flex-wrap gap-3">
         {isAdmin && (
-          <>
-            <Link
-              href="/admin/membres"
-              className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
-            >
-              Gérer les membres
-            </Link>
-            <Link
-              href="/admin/equipes"
-              className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
-            >
-              Gérer les équipes
-            </Link>
-            <Link
-              href="/admin/matchs"
-              className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
-            >
-              Gérer les matchs
-            </Link>
-            <Link
-              href="/admin/benevoles"
-              className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
-            >
-              Bénévoles
-            </Link>
-          </>
+          <Link
+            href="/administration"
+            className="inline-flex h-12 items-center rounded-xl bg-anthracite px-5 font-medium text-white"
+          >
+            Administration
+          </Link>
         )}
         {(isEntraineur || isCoach) && (
           <>
@@ -292,27 +284,31 @@ export default async function AccueilPage() {
             >
               Mes équipes
             </Link>
-            <Link
-              href="/seances"
-              className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
-            >
-              Séances
-            </Link>
+            {canSeances && (
+              <Link
+                href="/seances"
+                className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
+              >
+                Séances
+              </Link>
+            )}
             <Link
               href="/bibliotheque"
               className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
             >
               Bibliothèque d&apos;exercices
             </Link>
-            <Link
-              href="/matchs"
-              className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
-            >
-              Matchs
-            </Link>
+            {canMatchs && (
+              <Link
+                href="/matchs"
+                className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
+              >
+                Matchs
+              </Link>
+            )}
           </>
         )}
-        {(isAdmin || isEntraineur) && (
+        {(isAdmin || isEntraineur) && canProjetClub && (
           <Link
             href="/projet"
             className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
@@ -320,12 +316,14 @@ export default async function AccueilPage() {
             Projet club
           </Link>
         )}
-        <Link
-          href="/annonces"
-          className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
-        >
-          Annonces
-        </Link>
+        {canCommunication && (
+          <Link
+            href="/annonces"
+            className="inline-flex h-12 items-center rounded-xl border border-anthracite/20 px-5 font-medium text-anthracite"
+          >
+            Annonces
+          </Link>
+        )}
       </div>
     </main>
   );

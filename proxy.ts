@@ -14,7 +14,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (pathname.startsWith("/admin") && !session.roles.includes("admin")) {
+  if (
+    (pathname.startsWith("/admin") || pathname.startsWith("/administration")) &&
+    !session.roles.includes("admin")
+  ) {
     return NextResponse.redirect(new URL("/accueil", request.url));
   }
 
@@ -23,6 +26,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!connexion|_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|icons|logo-bvb.jpeg).*)",
+    "/((?!connexion|installation|_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|icons|logo-bvb.jpeg).*)",
   ],
 };

@@ -11,7 +11,7 @@ export default async function AdminEquipesPage() {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <PageHeader title="Équipes" backHref="/accueil" />
+      <PageHeader title="Équipes" backHref="/administration" />
       <p className="mt-1 text-sm text-anthracite/60">
         Catégorie, staff, effectif et créneaux d&apos;entraînement.
       </p>

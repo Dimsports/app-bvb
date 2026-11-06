@@ -1,10 +1,11 @@
-import { requireRole } from "@/lib/auth/guard";
+import { requireRole, requireFeature } from "@/lib/auth/guard";
 import { getAllTeams, getTeamsForMember } from "@/lib/teams/queries";
 import { getCycleOptionsForTeams } from "@/lib/cycles/queries";
 import { PageHeader } from "@/components/page-header";
 import { CreateSeanceForm } from "./create-seance-form";
 
 export default async function NouvelleSeancePage() {
+  await requireFeature("seances");
   const session = await requireRole("entraineur");
   const isAdmin = session.roles.includes("admin");
   const teams = isAdmin ? await getAllTeams() : await getTeamsForMember(session.memberId);

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireTeamStaff } from "@/lib/auth/guard";
+import { requireTeamStaff, requireFeature } from "@/lib/auth/guard";
 import { getSeanceDetail } from "@/lib/seances/queries";
 import { TerrainView } from "./terrain-view";
 
@@ -8,6 +8,7 @@ export default async function TerrainPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireFeature("mode_terrain");
   const { id } = await params;
   const seance = await getSeanceDetail(id);
   if (!seance) notFound();

@@ -8,7 +8,7 @@ export default async function AdminBenevolesPage() {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <PageHeader title="Bénévoles" backHref="/accueil" />
+      <PageHeader title="Bénévoles" backHref="/administration" />
       <p className="mt-1 text-sm text-anthracite/60">
         Annuaire, contact et missions effectuées, toutes équipes.
       </p>

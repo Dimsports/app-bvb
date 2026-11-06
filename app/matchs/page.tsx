@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAnyRole } from "@/lib/auth/guard";
+import { requireAnyRole, requireFeature } from "@/lib/auth/guard";
 import { getMatchesForMember } from "@/lib/matches/queries";
 import { teamLabel } from "@/lib/teams/constants";
 
@@ -10,6 +10,7 @@ const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", {
 });
 
 export default async function MatchsPage() {
+  await requireFeature("matchs");
   const session = await requireAnyRole(["entraineur", "coach"]);
   const isAdmin = session.roles.includes("admin");
   const matches = await getMatchesForMember(session.memberId, isAdmin);

@@ -1,9 +1,10 @@
-import { requireRole } from "@/lib/auth/guard";
+import { requireRole, requireFeature } from "@/lib/auth/guard";
 import { getTodayEntry } from "@/lib/wellbeing/queries";
 import { PageHeader } from "@/components/page-header";
 import { WellbeingForm } from "./wellbeing-form";
 
 export default async function BienEtrePage() {
+  await requireFeature("questionnaires");
   const session = await requireRole("joueur");
   const todayEntry = await getTodayEntry(session.memberId);
 

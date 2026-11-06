@@ -1,10 +1,11 @@
-import { requireSession } from "@/lib/auth/guard";
+import { requireSession, requireFeature } from "@/lib/auth/guard";
 import { getAnnonces } from "@/lib/annonces/queries";
 import { PageHeader } from "@/components/page-header";
 import { AnnonceFeed } from "./annonce-feed";
 import { PushToggle } from "./push-toggle";
 
 export default async function AnnoncesPage() {
+  await requireFeature("communication");
   const session = await requireSession();
   const canPost = session.roles.includes("admin") || session.roles.includes("entraineur");
   const annonces = await getAnnonces();

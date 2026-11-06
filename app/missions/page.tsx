@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth/guard";
+import { requireRole, requireFeature } from "@/lib/auth/guard";
 import { getMissionsFeed, getMissionsHistoryForMember } from "@/lib/matches/queries";
 import { getBenevoleProfile } from "@/lib/benevoles/queries";
 import { PageHeader } from "@/components/page-header";
@@ -7,6 +7,7 @@ import { ProfileSection } from "./profile-section";
 import { HistorySection } from "./history-section";
 
 export default async function MissionsPage() {
+  await requireFeature("benevoles");
   const session = await requireRole("benevole");
   const [feed, profile, history] = await Promise.all([
     getMissionsFeed(session.memberId),

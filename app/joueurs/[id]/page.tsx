@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requirePlayerAccess } from "@/lib/auth/guard";
+import { requirePlayerAccess, requireFeature } from "@/lib/auth/guard";
 import { getPlayerDetail } from "@/lib/players/queries";
 import { getRecentEntries } from "@/lib/wellbeing/queries";
 import { getNotesForPlayer } from "@/lib/notes/queries";
@@ -15,6 +15,7 @@ export default async function PlayerDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireFeature("joueurs");
   const { id } = await params;
   const player = await getPlayerDetail(id);
   if (!player) notFound();

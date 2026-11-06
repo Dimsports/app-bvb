@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { requireAnyRole } from "@/lib/auth/guard";
+import { requireAnyRole, requireFeature } from "@/lib/auth/guard";
 import { getSeancesForMember } from "@/lib/seances/queries";
 import { getRelevantVacance } from "@/lib/season/vacances";
+import { isModuleAllowedForRoles } from "@/lib/features/queries";
 import { teamLabel } from "@/lib/teams/constants";
 
 const WEEKDAY_FORMAT = new Intl.DateTimeFormat("fr-FR", {
@@ -17,11 +18,13 @@ function todayISO() {
 }
 
 export default async function SeancesPage() {
+  await requireFeature("seances");
   const session = await requireAnyRole(["entraineur", "coach"]);
   const isAdmin = session.roles.includes("admin");
   const seances = await getSeancesForMember(session.memberId, isAdmin);
   const canCreate = isAdmin || session.roles.includes("entraineur");
-  const vacance = getRelevantVacance(todayISO());
+  const showVacance = await isModuleAllowedForRoles("saison", session.roles);
+  const vacance = showVacance ? getRelevantVacance(todayISO()) : null;
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">

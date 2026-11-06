@@ -14,7 +14,7 @@ export default async function AdminMembresPage() {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
-      <PageHeader title="Membres du club" backHref="/accueil" />
+      <PageHeader title="Membres du club" backHref="/administration" />
       <p className="mt-1 text-sm text-anthracite/60">
         Créez les membres et gérez leurs codes de connexion.
       </p>

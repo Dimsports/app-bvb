@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireAnyRole } from "@/lib/auth/guard";
 import { getTeamDetail, isTeamStaff } from "@/lib/teams/queries";
 import { getCyclesForTeam } from "@/lib/cycles/queries";
+import { isModuleAllowedForRoles } from "@/lib/features/queries";
 import { teamLabel, jourLabel } from "@/lib/teams/constants";
 import { PageHeader } from "@/components/page-header";
 import { CyclesSection } from "./cycles-section";
@@ -24,7 +25,8 @@ export default async function MonEquipeDetailPage({
   if (!team) notFound();
 
   const canEdit = isAdmin || session.roles.includes("entraineur");
-  const cycles = await getCyclesForTeam(id);
+  const showSaison = await isModuleAllowedForRoles("saison", session.roles);
+  const cycles = showSaison ? await getCyclesForTeam(id) : [];
 
   return (
     <main className="flex flex-1 flex-col bg-background px-6 py-8">
@@ -76,7 +78,9 @@ export default async function MonEquipeDetailPage({
           </ul>
         </section>
 
-        <CyclesSection teamId={team.id} canEdit={canEdit} initialCycles={cycles} />
+        {showSaison && (
+          <CyclesSection teamId={team.id} canEdit={canEdit} initialCycles={cycles} />
+        )}
       </div>
     </main>
   );

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireTeamStaff } from "@/lib/auth/guard";
+import { requireTeamStaff, requireFeature } from "@/lib/auth/guard";
 import { getMatchDetail, getConvocationsForMatch, getMissionsForMatch } from "@/lib/matches/queries";
 import { teamLabel } from "@/lib/teams/constants";
 import { PageHeader } from "@/components/page-header";
@@ -18,6 +18,7 @@ export default async function MatchDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireFeature("matchs");
   const { id } = await params;
   const match = await getMatchDetail(id);
   if (!match) notFound();
