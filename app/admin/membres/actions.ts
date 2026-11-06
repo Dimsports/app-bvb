@@ -8,20 +8,31 @@ import { ROLES } from "@/lib/members/roles";
 import { logAction } from "@/lib/journal/log";
 import { revalidatePath } from "next/cache";
 
+const staffTeamSchema = z.object({
+  teamId: z.string().uuid(),
+  role: z.enum(["entraineur", "coach"]),
+});
+
 const createMemberSchema = z.object({
   prenom: z.string().trim().min(1, "Prénom requis").max(100),
   nom: z.string().trim().min(1, "Nom requis").max(100),
   roles: z.array(z.enum(ROLES)).min(1, "Choisissez au moins un rôle"),
+  dateNaissance: z.string().trim().min(1).optional().nullable(),
+  teamId: z.string().uuid().optional().nullable(),
+  staffTeams: z.array(staffTeamSchema).optional(),
 });
 
 export type CreateMemberResult =
-  | { ok: true; code: string; codeLength: number }
+  | { ok: true; id: string; code: string; codeLength: number }
   | { ok: false; error: string };
 
 export async function createMember(input: {
   prenom: string;
   nom: string;
   roles: string[];
+  dateNaissance?: string | null;
+  teamId?: string | null;
+  staffTeams?: { teamId: string; role: string }[];
 }): Promise<CreateMemberResult> {
   const session = await requireRole("admin");
 
@@ -30,29 +41,68 @@ export async function createMember(input: {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
   }
 
-  const { prenom, nom, roles } = parsed.data;
+  const { prenom, nom, roles, dateNaissance, teamId, staffTeams } = parsed.data;
   const codeLength = codeLengthForRoles(roles);
   const code = generateCode(codeLength);
   const codeHash = await hashCode(code);
 
   const supabase = getServiceClient();
-  const { error } = await supabase.from("members").insert({
-    prenom,
-    nom,
-    roles,
-    code_hash: codeHash,
-    code_length: codeLength,
-  });
+  const { data: member, error } = await supabase
+    .from("members")
+    .insert({
+      prenom,
+      nom,
+      roles,
+      code_hash: codeHash,
+      code_length: codeLength,
+    })
+    .select("id")
+    .single();
 
-  if (error) {
+  if (error || !member) {
     console.error("createMember error", error);
     return { ok: false, error: "Erreur lors de la création du membre." };
   }
 
-  await logAction(session.memberId, "membre_cree", `${prenom} ${nom} (${roles.join(", ")})`);
+  const touchedTeamIds = new Set<string>();
+
+  if (roles.includes("joueur")) {
+    if (dateNaissance) {
+      await supabase
+        .from("player_profiles")
+        .insert({ member_id: member.id, date_naissance: dateNaissance });
+    }
+    if (teamId) {
+      const { error: rosterError } = await supabase
+        .from("team_roster")
+        .insert({ team_id: teamId, member_id: member.id });
+      if (rosterError) console.error("createMember addRosterMember error", rosterError);
+      else touchedTeamIds.add(teamId);
+    }
+  }
+
+  if ((roles.includes("entraineur") || roles.includes("coach")) && staffTeams?.length) {
+    for (const { teamId: staffTeamId, role } of staffTeams) {
+      const { error: staffError } = await supabase
+        .from("team_staff")
+        .insert({ team_id: staffTeamId, member_id: member.id, role });
+      if (staffError) console.error("createMember addStaff error", staffError);
+      else touchedTeamIds.add(staffTeamId);
+    }
+  }
+
+  await logAction(
+    session.memberId,
+    "membre_cree",
+    `${prenom} ${nom} (${roles.join(", ")})${touchedTeamIds.size ? ` — ${touchedTeamIds.size} équipe(s)` : ""}`
+  );
 
   revalidatePath("/admin/membres");
-  return { ok: true, code, codeLength };
+  for (const id of touchedTeamIds) {
+    revalidatePath(`/admin/equipes/${id}`);
+  }
+
+  return { ok: true, id: member.id, code, codeLength };
 }
 
 export type ResetCodeResult =

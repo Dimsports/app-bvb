@@ -29,3 +29,27 @@ export function teamLabel(team: { categorie: string; genre: string; nom: string 
   const genreSuffix = team.genre === "Mixte" ? "" : ` ${GENRE_LABELS[team.genre as Genre]}`;
   return `${team.categorie}${genreSuffix}`;
 }
+
+/**
+ * Catégorie d'âge proposée à partir de la date de naissance (saison
+ * FFBB démarrant en septembre, âge au 31 décembre de la saison en
+ * cours). Approximation volontaire : sert uniquement à proposer une
+ * équipe en premier dans le formulaire, l'admin choisit librement.
+ */
+export function categorieFromBirthdate(dateNaissance: string): Categorie | null {
+  const birth = new Date(`${dateNaissance}T00:00:00`);
+  if (Number.isNaN(birth.getTime())) return null;
+
+  const today = new Date();
+  const seasonRefYear = today.getMonth() >= 8 ? today.getFullYear() + 1 : today.getFullYear();
+  const age = seasonRefYear - birth.getFullYear();
+
+  if (age <= 7) return "U7";
+  if (age <= 9) return "U9";
+  if (age <= 11) return "U11";
+  if (age <= 13) return "U13";
+  if (age <= 15) return "U15";
+  if (age <= 17) return "U17";
+  if (age <= 18) return "U18";
+  return "Seniors";
+}

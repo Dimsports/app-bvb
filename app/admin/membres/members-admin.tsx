@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { ROLES, ROLE_LABELS, isRole, type Role } from "@/lib/members/roles";
+import { categorieFromBirthdate, teamLabel } from "@/lib/teams/constants";
 import { createMember, resetMemberCode, deleteMember } from "./actions";
 
 export type MemberRow = {
@@ -14,7 +15,21 @@ export type MemberRow = {
   locked_until: string | null;
 };
 
-export function MembersAdmin({ initialMembers }: { initialMembers: MemberRow[] }) {
+export type TeamOption = {
+  id: string;
+  categorie: string;
+  genre: string;
+  nom: string | null;
+  gymnase: string | null;
+};
+
+export function MembersAdmin({
+  initialMembers,
+  teams,
+}: {
+  initialMembers: MemberRow[];
+  teams: TeamOption[];
+}) {
   const [members, setMembers] = useState(initialMembers);
   const [revealedCode, setRevealedCode] = useState<{ for: string; code: string } | null>(
     null
@@ -23,6 +38,7 @@ export function MembersAdmin({ initialMembers }: { initialMembers: MemberRow[] }
   return (
     <div className="mt-6 flex flex-col gap-8">
       <CreateMemberForm
+        teams={teams}
         onCreated={(member, code) => {
           setMembers((prev) => [...prev, member].sort((a, b) => a.nom.localeCompare(b.nom)));
           setRevealedCode({ for: `${member.prenom} ${member.nom}`, code });
@@ -69,39 +85,103 @@ export function MembersAdmin({ initialMembers }: { initialMembers: MemberRow[] }
   );
 }
 
+type StaffTeamSelection = { teamId: string; role: "entraineur" | "coach" };
+
 function CreateMemberForm({
+  teams,
   onCreated,
 }: {
+  teams: TeamOption[];
   onCreated: (member: MemberRow, code: string) => void;
 }) {
   const [prenom, setPrenom] = useState("");
   const [nom, setNom] = useState("");
   const [roles, setRoles] = useState<Role[]>([]);
+  const [dateNaissance, setDateNaissance] = useState("");
+  const [teamId, setTeamId] = useState("");
+  const [teamTouched, setTeamTouched] = useState(false);
+  const [staffTeams, setStaffTeams] = useState<StaffTeamSelection[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const isJoueur = roles.includes("joueur");
+  const staffRoles = roles.filter((r): r is "entraineur" | "coach" => r === "entraineur" || r === "coach");
+  const isStaff = staffRoles.length > 0;
+
+  const suggestedCategorie = dateNaissance ? categorieFromBirthdate(dateNaissance) : null;
+  const sortedTeams = suggestedCategorie
+    ? [
+        ...teams.filter((t) => t.categorie === suggestedCategorie),
+        ...teams.filter((t) => t.categorie !== suggestedCategorie),
+      ]
+    : teams;
+
   function toggleRole(role: Role) {
-    setRoles((prev) =>
-      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
-    );
+    setRoles((prev) => {
+      const next = prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role];
+      if ((role === "entraineur" || role === "coach") && !next.includes(role)) {
+        setStaffTeams((rows) => rows.filter((r) => r.role !== role));
+      }
+      return next;
+    });
+  }
+
+  function handleDateNaissance(value: string) {
+    setDateNaissance(value);
+    if (!teamTouched && value) {
+      const categorie = categorieFromBirthdate(value);
+      const match = teams.find((t) => t.categorie === categorie);
+      if (match) setTeamId(match.id);
+    }
+  }
+
+  function addStaffTeamRow() {
+    const defaultRole = staffRoles[0] ?? "entraineur";
+    setStaffTeams((prev) => [...prev, { teamId: teams[0]?.id ?? "", role: defaultRole }]);
+  }
+
+  function updateStaffTeamRow(index: number, patch: Partial<StaffTeamSelection>) {
+    setStaffTeams((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+  }
+
+  function removeStaffTeamRow(index: number) {
+    setStaffTeams((prev) => prev.filter((_, i) => i !== index));
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     startTransition(async () => {
-      const result = await createMember({ prenom, nom, roles });
+      const result = await createMember({
+        prenom,
+        nom,
+        roles,
+        dateNaissance: isJoueur && dateNaissance ? dateNaissance : null,
+        teamId: isJoueur && teamId ? teamId : null,
+        staffTeams: isStaff ? staffTeams.filter((s) => s.teamId) : [],
+      });
       if (!result.ok) {
         setError(result.error);
         return;
       }
       onCreated(
-        { id: crypto.randomUUID(), prenom, nom, roles, code_length: result.codeLength, locked_until: null },
+        {
+          id: result.id,
+          prenom,
+          nom,
+          roles,
+          code_length: result.codeLength,
+          locked_until: null,
+        },
         result.code
       );
       setPrenom("");
       setNom("");
       setRoles([]);
+      setDateNaissance("");
+      setTeamId("");
+      setTeamTouched(false);
+      setStaffTeams([]);
     });
   }
 
@@ -117,14 +197,14 @@ function CreateMemberForm({
           value={prenom}
           onChange={(e) => setPrenom(e.target.value)}
           placeholder="Prénom"
-          className="h-12 flex-1 rounded-lg border border-anthracite/20 px-3"
+          className="h-12 min-w-0 flex-1 rounded-lg border border-anthracite/20 px-3"
           required
         />
         <input
           value={nom}
           onChange={(e) => setNom(e.target.value)}
           placeholder="Nom"
-          className="h-12 flex-1 rounded-lg border border-anthracite/20 px-3"
+          className="h-12 min-w-0 flex-1 rounded-lg border border-anthracite/20 px-3"
           required
         />
       </div>
@@ -145,6 +225,90 @@ function CreateMemberForm({
           </button>
         ))}
       </div>
+
+      {isJoueur && (
+        <div className="flex flex-col gap-3 rounded-xl bg-background p-4">
+          <div>
+            <label className="text-sm font-medium text-anthracite">Date de naissance</label>
+            <input
+              type="date"
+              value={dateNaissance}
+              onChange={(e) => handleDateNaissance(e.target.value)}
+              className="mt-1 h-12 w-full rounded-lg border border-anthracite/20 px-3"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-anthracite">Équipe</label>
+            <select
+              value={teamId}
+              onChange={(e) => {
+                setTeamTouched(true);
+                setTeamId(e.target.value);
+              }}
+              className="mt-1 h-12 w-full rounded-lg border border-anthracite/20 px-3 bg-card"
+            >
+              <option value="">Aucune équipe</option>
+              {sortedTeams.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {teamLabel(t)}
+                  {suggestedCategorie === t.categorie ? " (catégorie proposée)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
+      {isStaff && (
+        <div className="flex flex-col gap-3 rounded-xl bg-background p-4">
+          <label className="text-sm font-medium text-anthracite">Équipes encadrées</label>
+          {staffTeams.map((row, index) => (
+            <div key={index} className="flex gap-2">
+              <select
+                value={row.teamId}
+                onChange={(e) => updateStaffTeamRow(index, { teamId: e.target.value })}
+                className="h-12 min-w-0 flex-1 rounded-lg border border-anthracite/20 px-3 bg-card"
+              >
+                {teams.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {teamLabel(t)}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={row.role}
+                onChange={(e) =>
+                  updateStaffTeamRow(index, { role: e.target.value as "entraineur" | "coach" })
+                }
+                className="h-12 w-28 shrink-0 rounded-lg border border-anthracite/20 px-3 bg-card"
+              >
+                {staffRoles.map((r) => (
+                  <option key={r} value={r}>
+                    {ROLE_LABELS[r]}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => removeStaffTeamRow(index)}
+                aria-label="Retirer cette équipe"
+                className="h-12 w-12 shrink-0 rounded-lg border border-anthracite/20 text-anthracite/60"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          {teams.length > 0 && (
+            <button
+              type="button"
+              onClick={addStaffTeamRow}
+              className="h-11 rounded-lg border border-anthracite/20 text-sm font-medium text-anthracite"
+            >
+              + Ajouter une équipe
+            </button>
+          )}
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
