@@ -22,6 +22,11 @@
   --color-part-theme: #5cc6b1;
   --color-part-jeu: #b79cf2;
   --color-part-retour-calme: #9aa5aa;
+
+  --color-niveau-non-acquis: #e0685c;
+  --color-niveau-en-cours: #f2a93b;
+  --color-niveau-acquis: #6fa8f5;
+  --color-niveau-maitrise: #4a9d7f;
 }
 
 @theme inline {
@@ -46,6 +51,11 @@
   --color-part-theme: var(--color-part-theme);
   --color-part-jeu: var(--color-part-jeu);
   --color-part-retour-calme: var(--color-part-retour-calme);
+
+  --color-niveau-non-acquis: var(--color-niveau-non-acquis);
+  --color-niveau-en-cours: var(--color-niveau-en-cours);
+  --color-niveau-acquis: var(--color-niveau-acquis);
+  --color-niveau-maitrise: var(--color-niveau-maitrise);
 
   --font-title: var(--font-barlow-condensed);
   --font-sans: var(--font-inter);

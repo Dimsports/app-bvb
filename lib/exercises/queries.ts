@@ -72,6 +72,7 @@ export async function getExercises(filter: {
   partie?: string;
   query?: string;
   themeId?: string;
+  competenceId?: string;
   categorie?: string;
   espace?: string;
   intensite?: string;
@@ -103,6 +104,15 @@ export async function getExercises(filter: {
     if (ids.length === 0) return [];
     q = q.in("id", ids);
   }
+  if (filter.competenceId) {
+    const { data: links } = await supabase
+      .from("competence_exercises")
+      .select("exercise_id")
+      .eq("competence_id", filter.competenceId);
+    const ids = (links ?? []).map((l) => l.exercise_id);
+    if (ids.length === 0) return [];
+    q = q.in("id", ids);
+  }
 
   const { data, error } = await q;
   if (error) {
@@ -118,6 +128,14 @@ export async function getExercise(id: string): Promise<Exercise | null> {
 
   if (error || !data) return null;
   return mapRow(data as unknown as ExerciseRow);
+}
+
+export async function getExerciseTitles(ids: string[]): Promise<{ id: string; titre: string }[]> {
+  if (ids.length === 0) return [];
+  const supabase = getServiceClient();
+  const { data, error } = await supabase.from("exercises").select("id, titre").in("id", ids);
+  if (error) return [];
+  return data ?? [];
 }
 
 export async function getAllMateriel(): Promise<string[]> {

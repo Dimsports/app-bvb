@@ -3,6 +3,8 @@ import { requirePlayerAccess, requireFeature } from "@/lib/auth/guard";
 import { getPlayerDetail } from "@/lib/players/queries";
 import { getRecentEntries } from "@/lib/wellbeing/queries";
 import { getNotesForPlayer } from "@/lib/notes/queries";
+import { getEvaluationsForPlayer } from "@/lib/evaluations/queries";
+import { NIVEAU_COLOR_VAR, isNiveau } from "@/lib/competences/constants";
 import { teamLabel } from "@/lib/teams/constants";
 import { PageHeader } from "@/components/page-header";
 import { PlayerProfileSection } from "./player-profile-section";
@@ -28,6 +30,14 @@ export default async function PlayerDetailPage({
     player.presenceTotal > 0 ? Math.round((player.presenceCount / player.presenceTotal) * 100) : null;
   const wellbeingEntries = canSeeWellbeing ? await getRecentEntries(player.id, 7) : [];
   const notes = await getNotesForPlayer(player.id);
+  const evaluations = await getEvaluationsForPlayer(player.id);
+  const latestEvaluation = evaluations[0] ?? null;
+  const pointsForts = latestEvaluation
+    ? latestEvaluation.items.filter((it) => it.niveau === "acquis" || it.niveau === "maitrise")
+    : [];
+  const axesTravail = latestEvaluation
+    ? latestEvaluation.items.filter((it) => it.niveau === "non_acquis" || it.niveau === "en_cours")
+    : [];
 
   const backHref = player.teams[0] ? `/equipes/${player.teams[0].id}` : "/equipes";
 
@@ -80,6 +90,77 @@ export default async function PlayerDetailPage({
           canDeleteAny={canEdit}
           initialNotes={notes}
         />
+
+        <section className="rounded-2xl bg-card p-6 shadow-sm">
+          <h2 className="font-title text-xl text-anthracite">Évaluations</h2>
+          <p className="mt-1 text-xs text-anthracite/40">
+            Visible uniquement par le staff de l&apos;équipe et l&apos;admin.
+          </p>
+
+          {latestEvaluation ? (
+            <>
+              <p className="mt-3 text-sm font-medium text-anthracite/70">
+                Dernière évaluation — {latestEvaluation.periode} (
+                {DATE_FORMAT.format(new Date(`${latestEvaluation.date}T00:00:00`))})
+                {latestEvaluation.auteur ? ` · ${latestEvaluation.auteur.prenom} ${latestEvaluation.auteur.nom}` : ""}
+              </p>
+
+              {pointsForts.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-xs font-medium text-anthracite/50">Points forts</p>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {pointsForts.map((it) => (
+                      <span
+                        key={it.competenceId}
+                        className="rounded-full px-3 py-1 text-sm text-white"
+                        style={{ backgroundColor: isNiveau(it.niveau) ? NIVEAU_COLOR_VAR[it.niveau] : undefined }}
+                      >
+                        {it.competenceNom}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {axesTravail.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-xs font-medium text-anthracite/50">Axes de travail</p>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {axesTravail.map((it) => (
+                      <span
+                        key={it.competenceId}
+                        className="rounded-full px-3 py-1 text-sm text-white"
+                        style={{ backgroundColor: isNiveau(it.niveau) ? NIVEAU_COLOR_VAR[it.niveau] : undefined }}
+                      >
+                        {it.competenceNom}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {latestEvaluation.commentaireGeneral && (
+                <p className="mt-2 text-sm text-anthracite">{latestEvaluation.commentaireGeneral}</p>
+              )}
+
+              {evaluations.length > 1 && (
+                <div className="mt-4">
+                  <p className="text-xs font-medium text-anthracite/50">Historique</p>
+                  <ul className="mt-1 flex flex-col gap-1">
+                    {evaluations.slice(1).map((ev) => (
+                      <li key={ev.id} className="text-sm text-anthracite/60">
+                        {ev.periode} — {DATE_FORMAT.format(new Date(`${ev.date}T00:00:00`))}
+                        {ev.auteur ? ` · ${ev.auteur.prenom} ${ev.auteur.nom}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="mt-3 text-sm text-anthracite/50">Aucune évaluation pour l&apos;instant.</p>
+          )}
+        </section>
 
         {canSeeWellbeing && (
           <section className="rounded-2xl bg-card p-6 shadow-sm">

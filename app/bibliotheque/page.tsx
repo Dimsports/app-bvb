@@ -14,6 +14,7 @@ export default async function BibliothequePage({
     partie?: string;
     q?: string;
     theme?: string;
+    competence?: string;
     categorie?: string;
     espace?: string;
     intensite?: string;
@@ -22,12 +23,13 @@ export default async function BibliothequePage({
   }>;
 }) {
   const session = await requireAnyRole(["entraineur", "coach"]);
-  const { partie, q, theme, categorie, espace, intensite, opposition, joueurs } = await searchParams;
+  const { partie, q, theme, competence, categorie, espace, intensite, opposition, joueurs } = await searchParams;
   const [exercises, themeFamilies, clubSettings] = await Promise.all([
     getExercises({
       partie,
       query: q,
       themeId: theme,
+      competenceId: competence,
       categorie,
       espace,
       intensite,
